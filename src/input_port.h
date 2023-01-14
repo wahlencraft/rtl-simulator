@@ -19,6 +19,8 @@ template<int N>
 class InputPort: public Entity {
 public:
     InputPort(Component *parent, std::string const &name="InputPort"): Entity(name), parent{parent} {};
+    InputPort(InputPort const&) = delete;
+    InputPort operator=(InputPort const&) = delete;
 
     void set(T val) {
         std::cout << "Setting " << name << " to: " << unsigned(val) << std::endl;

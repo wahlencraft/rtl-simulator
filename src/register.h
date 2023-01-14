@@ -20,6 +20,8 @@ class Register : public Component {
 public:
     Register(std::string const &name="Register"): Component(name), outwire{nullptr} {}
     Register(Wire<N> *outwire, std::string const &name="Register"): Component(name), outwire{outwire} {}
+    Register(Register const&) = delete;
+    Register operator=(Register const&) = delete;
 
     InputPort<N> in{this, name + ".in"};
 
