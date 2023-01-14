@@ -1,5 +1,7 @@
-#ifndef PORT_H_
-#define PORT_H_
+#ifndef INPUT_PORT_H_
+#define INPUT_PORT_H_
+
+#include <iostream>
 
 #include "component.h"
 
@@ -20,24 +22,26 @@ public:
 
     void set(T val) {
         std::cout << "Setting " << name << " to: " << unsigned(val) << std::endl;
-        assert(!been_set);
-        been_set = true;
+        if (is_set) {
+            throw std::runtime_error(name + " has alredy been set");
+        }
+        is_set = true;
         value = val;
         parent->set();
     }
 
     void reset() override {
         std::cout << "Reseting " << name << std::endl;
-        been_set = false;
+        is_set = false;
         parent->reset();
     }
     T get_value() { return value; }
 
 private:
     T value{};
-    bool been_set{false};
+    bool is_set{false};
     Component *parent;
 };
 
-#endif  // PORT_H_
+#endif  // INPUT_PORT_H_
 

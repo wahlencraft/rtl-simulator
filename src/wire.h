@@ -5,7 +5,7 @@
 #include <cassert>
 
 #include "component.h"
-#include "port.h"
+#include "input_port.h"
 
 template <int N>
 #if N <= 8
@@ -34,7 +34,9 @@ public:
     int get_width() const { return N; }
 
     void set(T val) {
-        assert(is_set == false);
+        if (is_set) {
+            throw std::runtime_error(name + " has alredy been set");
+        }
         is_set = true;
         T value = val & MASK;
         if (val != value) {

@@ -45,7 +45,7 @@ public:
                 // Overflow TODO
             }
         } else if (set_count > 3) {
-            throw std::range_error(name + " has been set too many times");
+            throw std::runtime_error(name + " has been set too many times");
         }
     }
 
