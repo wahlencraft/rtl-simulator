@@ -58,7 +58,7 @@ MAINOBJ := $(patsubst %.cpp,%.o, $(MAINFILE))
 CPP_OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(CPP_SOURCE))
 C_OBJS := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(C_SOURCE))
 TEST_OBJS := $(patsubst $(TEST_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(TEST_SOURCE))
-ALL_OBJS := $(CPP_OBJS) $(C_OBJS) $(OBJ_DIR)/$(MAINOBJ)
+ALL_OBJS := $(CPP_OBJS) $(C_OBJS) $(TEST_OBJS) $(OBJ_DIR)/$(MAINOBJ)
 
 DEPS := $(patsubst %.o, %.d, $(ALL_OBJS))
 
@@ -76,7 +76,7 @@ main: subdirs base $(OBJ_DIR)/$(MAINOBJ)
 # Test objetice
 tests: subdirs base $(TEST_OBJS)
 	@ echo Linking test file
-	@ $(C_CPP) $(CPPFLAGS) -I$(SRC_DIR) -o $(TEST_OUTNAME) \
+	@ $(CC_CPP) $(CPPFLAGS) -I$(SRC_DIR) -o $(TEST_OUTNAME) \
 		$(CPP_OBJS) $(C_OBJS) $(TEST_OBJS) $(SUBDIR_OBJS) $(LDFLAGS)
 	@ echo ""
 
@@ -108,7 +108,7 @@ $(C_OBJS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 # Test program objects
 $(TEST_OBJS): $(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp
 	@ echo Compiling $<
-	@ $(C_CPP) -I$(SRC_DIR) $(CPPFLAGS) -c $< -o $@
+	@ $(CC_CPP) -I$(SRC_DIR) $(CPPFLAGS) -c $< -o $@
 
 # Create build directory
 $(OBJ_DIR):
