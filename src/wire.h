@@ -45,7 +45,7 @@ public:
         std::cout << "set " << name << " to: '" << unsigned(value) << "'" << std::endl;
 
         for (auto const &target : target_list) {
-            std::cout << "passing value to component..." << std::endl;
+            std::cout << "passing value to " << target->get_name() << std::endl;
             target->set(value);
         }
     }

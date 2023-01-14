@@ -18,9 +18,9 @@ public:
     Adder(const Adder &) = delete;
     Adder operator=(const Adder &) = delete;
 
-    InputPort<N> A{this};
-    InputPort<N> B{this};
-    InputPort<1> Cin{this};
+    InputPort<N> A{this, name + ".A"};
+    InputPort<N> B{this, name + ".B"};
+    InputPort<1> Cin{this, name + ".Cin"};
 
     void reset() override {
         if (set_count) {
