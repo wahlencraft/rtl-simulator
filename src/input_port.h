@@ -4,25 +4,16 @@
 #include <iostream>
 
 #include "component.h"
-
+#include "types.h"
 
 template<int N>
-#if N <= 8
-#   define T uint8_t
-#elif N <= 16
-#   define T uint16_t
-#elif N <= 32
-#   define T uint32_t
-#elif N <= 64
-#   define T uint64_t
-#endif
 class InputPort: public Entity {
 public:
     InputPort(Component *parent, std::string const &name="InputPort"): Entity(name), parent{parent} {};
     InputPort(InputPort const&) = delete;
     InputPort operator=(InputPort const&) = delete;
 
-    void set(T val) {
+    void set(bits<N> val) {
         std::cout << "Setting " << name << " to: " << unsigned(val) << std::endl;
         if (is_set) {
             throw std::runtime_error(name + " has alredy been set");
@@ -37,10 +28,10 @@ public:
         is_set = false;
         parent->reset();
     }
-    T get_value() { return value; }
+    bits<N> get_value() { return value; }
 
 private:
-    T value{};
+    bits<N> value{};
     bool is_set{false};
     Component *parent;
 };

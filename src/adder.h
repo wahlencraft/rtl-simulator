@@ -1,16 +1,9 @@
 #ifndef ADDER_H_
 #define ADDER_H_
 
-template<int N>
-#if N < 8
-#   define Tl uint8_t
-#elif N < 16
-#   define Tl uint16_t
-#elif N < 32
-#   define Tl uint32_t
-#elif N < 64
-#   define Tl uint64_t
-#endif
+#include "types.h"
+
+template <int N>
 class Adder : public Component {
 public:
     Adder(Wire<N> *outwire, std::string const &name="Adder"): Component(name), outwire{outwire}, Cout{nullptr} {}
@@ -37,7 +30,13 @@ public:
         if (set_count == 3) {
             std::cout << "Setting " << name << std::endl;
             // Ready to calculate output
-            Tl sum = A.get_value() + B.get_value() + Cin.get_value();
+            bits<N+1> sum = static_cast<bits<N+1>>(A.get_value())
+                      + static_cast<bits<N+1>>(B.get_value())
+                      + static_cast<bits<N+1>>(Cin.get_value());
+            std::cout << "A = " << unsigned(A.get_value())
+                      << " B = " << unsigned(B.get_value())
+                      << " Cin = " << unsigned(Cin.get_value())
+                      << " sum = " << unsigned(sum) << std::endl;
             outwire->set(sum & MASK);
             if (Cout != nullptr) {
                 Cout->set((sum >> N) & 1);
@@ -53,7 +52,7 @@ private:
     Wire<N> *outwire;
     Wire<1> *Cout;
     int set_count = 0;
-    Tl const MASK = static_cast<Tl>((1 << N) - 1);
+    bits<N+1> const MASK = static_cast<bits<N+1>>((1 << N) - 1);
 };
 
 #endif  // ADDER_H_

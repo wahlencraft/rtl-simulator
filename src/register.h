@@ -7,15 +7,6 @@
 #include "wire.h"
 
 template <int N>
-#if N <= 8
-#   define T uint8_t
-#elif N <= 16
-#   define T uint16_t
-#elif N <= 32
-#   define T uint32_t
-#elif N <= 64
-#   define T uint64_t
-#endif
 class Register : public Component {
 public:
     Register(std::string const &name="Register"): Component(name), outwire{nullptr} {}
@@ -41,7 +32,7 @@ public:
     }
 
     // Setting a Register ends the set chain.
-    // To start a set chain, call clock().
+    // bits<N>o start a set chain, call clock().
     void set() override {
         if (is_set) {
             throw std::runtime_error(name + " has already been set");
@@ -58,14 +49,14 @@ public:
         }
     }
 
-    T get_value() {
+    bits<N> get_value() {
         return outvalue;
     }
 
 private:
     Wire<N> *outwire;
     bool is_set{false};
-    T outvalue{};
+    bits<N> outvalue{};
 };
 
 #endif  // REGISTER_H_

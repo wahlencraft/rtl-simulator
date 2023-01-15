@@ -6,17 +6,9 @@
 
 #include "component.h"
 #include "input_port.h"
+#include "types.h"
 
 template <int N>
-#if N <= 8
-#   define T uint8_t
-#elif N <= 16
-#   define T uint16_t
-#elif N <= 32
-#   define T uint32_t
-#elif N <= 64
-#   define T uint64_t
-#endif
 class Wire : public Entity {
 public:
     Wire(std::string name="Wire"): Entity(name), target_list{} {};
@@ -33,12 +25,12 @@ public:
 
     int get_width() const { return N; }
 
-    void set(T val) {
+    void set(bits<N> val) {
         if (is_set) {
             throw std::runtime_error(name + " has alredy been set");
         }
         is_set = true;
-        T value = val & MASK;
+        bits<N> value = val & MASK;
         if (val != value) {
             std::cout << "Warning: wire not wide enough for value" << std::endl;
         }
@@ -52,7 +44,7 @@ public:
 
 private:
     bool is_set = false;
-    T const MASK = static_cast<T>((1 << N) - 1);
+    bits<N> const MASK = static_cast<bits<N>>((1 << N) - 1);
     std::list<InputPort<N>*> target_list;
 };
 

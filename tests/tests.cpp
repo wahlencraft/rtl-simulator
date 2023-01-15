@@ -51,8 +51,6 @@ TEST_CASE( "Registers" ) {
 }
 
 TEST_CASE( "Constallation 1: Registers, adders and wires") {
-
-    SECTION( "SECTION 1" ) {
     //
     //    r0    r1                  r2
     //    ___   ___                 ___
@@ -94,25 +92,87 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
     Register<8> r1{&w1, "Register1"};
     Register<8> r0{&w0, "Register0"};
 
-    r0.in.set(7);
-    r1.in.set(8);
-    r2.in.set(15);
-    r3.in.set(0);
+    SECTION( "Simple test" ) {
 
-    cout << "\n";
+        r0.in.set(7);
+        r1.in.set(8);
+        r2.in.set(15);
+        r3.in.set(0);
 
-    r0.clock();
-    r1.clock();
-    r2.clock();
-    r3.clock();
+        cout << "\n";
 
-    cout << "\n";
+        r0.clock();
+        r1.clock();
+        r2.clock();
+        r3.clock();
 
-    r4.clock();
-    r5.clock();
+        cout << "\n";
 
-    REQUIRE( r5.get_value() == 23 );
-    REQUIRE( r4.get_value() == 15 );
+        r4.clock();
+        r5.clock();
 
+        REQUIRE( r5.get_value() == 23 );
+        REQUIRE( r4.get_value() == 15 );
+
+        r0.in.reset();
+        r1.in.reset();
+        r2.in.reset();
+        r3.in.reset();
+    }
+
+    SECTION( "Carry in" ) {
+
+        r0.in.set(0);
+        r1.in.set(8);
+        r2.in.set(0);
+        r3.in.set(1);
+
+        cout << "\n";
+
+        r0.clock();
+        r1.clock();
+        r2.clock();
+        r3.clock();
+
+        cout << "\n";
+
+        r4.clock();
+        r5.clock();
+
+        REQUIRE( r5.get_value() == 9 );
+        REQUIRE( r4.get_value() == 8 );
+
+        r0.in.reset();
+        r1.in.reset();
+        r2.in.reset();
+        r3.in.reset();
+    }
+
+    SECTION( "Carry out" ) {
+
+        r0.in.set(0);
+        r1.in.set(0x1);
+        r2.in.set(0xff);
+        r3.in.set(0);
+
+        cout << "\n";
+
+        r0.clock();
+        r1.clock();
+        r2.clock();
+        r3.clock();
+
+        cout << "\n";
+
+        r4.clock();
+        r5.clock();
+
+        REQUIRE( r5.get_value() == 0 );
+        REQUIRE( r4.get_value() == 2 );
+
+        r0.in.reset();
+        r1.in.reset();
+        r2.in.reset();
+        r3.in.reset();
     }
 }
