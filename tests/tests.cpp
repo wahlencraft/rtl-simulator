@@ -99,6 +99,29 @@ TEST_CASE( "BitVectors" ) {
         REQUIRE( concatenate( vA.slice<9, 8>(), vA.slice<3, 0>(), vB[7], vC)
                 == 0x1ff );
     }
+
+    SECTION( "Extend, signextend" ) {
+        BitVector<8> pos8{0x40};  // msb = 0
+        BitVector<8> neg8{0x80};  // msb = 1
+        BitVector<7> pos7{0x20};  // msb = 0
+        BitVector<7> neg7{0x40};  // msb = 1
+
+        CHECK( bitmask<7>() == 0x7f );
+        CHECK( bitmask<8>() == 0xff );
+        // Extend
+        CHECK( pos8.extend<12>() == 0x040 );
+        CHECK( neg8.extend<12>() == 0x080 );
+
+        CHECK( pos7.extend<12>() == 0x020 );
+        CHECK( neg7.extend<12>() == 0x040 );
+
+        // Signextend
+        CHECK( pos8.signextend<12>() == 0x040 );
+        CHECK( neg8.signextend<12>() == 0xf80 );
+
+        CHECK( pos7.signextend<12>() == 0x020 );
+        CHECK( neg7.signextend<12>() == 0xfc0 );
+    }
 }
 
 TEST_CASE( "Wires" ) {
