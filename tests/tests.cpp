@@ -8,27 +8,67 @@
 using namespace std;
 
 TEST_CASE( "BitVectors" ) {
-    SECTION( "Constructors, comparitions, copy" ) {
+    SECTION( "Constructor, copy, move" ) {
+        // Default constructor
         BitVector<10> v0{};
         REQUIRE(v0.length == 10);
+        BitVector<7> v1{};
+        REQUIRE(v1.length == 7);
 
-        BitVector<10> v1{0x20f};
+        // Construct with value
+        BitVector<10> v2{0x20f};
+        REQUIRE(v2.length == 10);
+        REQUIRE(v2.get_value() == 0x20f);
+        uint16_t value3 = 0xfab;
+        BitVector<12> v3{value3};
+        REQUIRE(v3.get_value() == 0xfab);
+        BitVector<18> v18{0x1123};
+        REQUIRE(v18.get_value() == 0x1123);
+        BitVector<60> v60{0xfffffffffffff0f};
+        REQUIRE(v60.get_value() == 0xfffffffffffff0f);
+
+        // Set value
+        BitVector<8> v4{};
+        v4 = 0xaa;
+        REQUIRE(v4.get_value() == 0xaa);
+        uint8_t value4 = 0xbb;
+        v4 = value4;
+        REQUIRE(v4.get_value() == 0xbb);
+
+        // Copy constructor
+        BitVector<4> org0{0x3};
+        BitVector<4> cpy0{org0};
+        REQUIRE(cpy0.get_value() == 0x3);
+        BitVector<18> org1{0x1123};
+        BitVector<18> cpy1{org1};
+        REQUIRE(cpy1.get_value() == 0x1123);
+
+        // Move
+        BitVector<16> org3{0xbeef};
+        BitVector<16> mov0{std::move(org3)};
+        REQUIRE(mov0.get_value() == 0xbeef);
+        BitVector<16> org4{0x8008};
+        BitVector<16> mov1{};
+        mov1 = std::move(org4);
+        REQUIRE(mov1.get_value() == 0x8008);
+    }
+
+    SECTION( "Comparisons" ) {
+        BitVector<10> v0{0x3ff};
+        BitVector<10> v1{0x30f};
+
+        // Compare with BitVector
         REQUIRE(v0 != v1);
         REQUIRE_FALSE(v0 == v1);
         v0 = v1;
         REQUIRE(v0 == v1);
-        BitVector<10> v2{v0};
-        REQUIRE(v0 == v2);
-        v0 = 0x1ff;
-        REQUIRE_FALSE(v0 == v2);
-        REQUIRE(v0 == 0x1ff);
-        REQUIRE_FALSE(v0 == 0x1f7);
 
-        BitVector<4> v3{0x82};
-        REQUIRE(v3 == 0x2);
-        v3 = 0x44;
-        REQUIRE(v3 == 0x4);
+        // Compare with constant
+        BitVector<8> v3{0xaf};
+        REQUIRE(v3 == 0xaf);
+        REQUIRE(v3 != 0xff);
     }
+
     SECTION("Access bits, slicing, concatenation") {
         BitVector<8> v0{0x74};
         REQUIRE(v0[0] == 0);

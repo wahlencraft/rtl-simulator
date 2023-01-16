@@ -22,6 +22,8 @@ T<N> bitmask(T<N> value) {
         shift = 8 - N;
     } else if (N <= 16) {
         shift = 16 - N;
+    } else if (N <= 32) {
+        shift = 32 - N;
     } else if (N <= 64) {
         shift = 64 - N;
     }
@@ -34,7 +36,8 @@ public:
     const int length{N};
     BitVector(): value{0} {};
     BitVector(T<N> value): value{bitmask<N>(value)} {};
-    BitVector(BitVector<10> const &other): value{other.get_value()} {};
+    BitVector(BitVector<N> const &other): value{other.get_value()} {};
+    BitVector(BitVector<N> &&other): value{other.get_value()} {};
 
     // Operators
     bool operator==(BitVector<N> const &other) const {
