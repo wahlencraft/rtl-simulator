@@ -91,12 +91,35 @@ std::ostream& operator<<(std::ostream &os, BitVector<N> const &v) {
     return os;
 }
 
+
+// Concatinate BitVectors
+//
+// I could not figure out how to do this recursively, so you can only
+// concatinate 2-4 BitVectors at a time
+
 template <int N, int M>
 BitVector<N + M> concatenate(BitVector<N> const &vec0, BitVector<M> const &vec1) {
     T<N + M> val0 = static_cast<T<N + M>>(vec0.get_value());
     T<N + M> val1 = static_cast<T<N + M>>(vec1.get_value());
     T<N + M> concat_val = (val0 << M) | val1;
     return BitVector<N + M>{concat_val};
+}
+
+template <int N0, int N1, int N2>
+BitVector<N0 + N1 + N2> concatenate(
+        BitVector<N0> const &vec0,
+        BitVector<N1> const &vec1,
+        BitVector<N2> const &vec2) {
+    return concatenate<N0, N1 + N2>(vec0, concatenate<N1, N2>(vec1, vec2));
+}
+
+template <int N0, int N1, int N2, int N3>
+BitVector<N0 + N1 + N2 + N3> concatenate(
+        BitVector<N0> const &vec0,
+        BitVector<N1> const &vec1,
+        BitVector<N2> const &vec2,
+        BitVector<N3> const &vec3) {
+    return concatenate<N0, N1 + N2 + N3>(vec0, concatenate<N1, N2, N3>(vec1, vec2, vec3));
 }
 
 #endif  // BITVECTOR_H_

@@ -70,18 +70,34 @@ TEST_CASE( "BitVectors" ) {
     }
 
     SECTION("Access bits, slicing, concatenation") {
+        // Access bit
         BitVector<8> v0{0x74};
         REQUIRE(v0[0] == 0);
         REQUIRE(v0[2] == 1);
         REQUIRE(v0[6] == 1);
+
+        // Slicing
         BitVector<5> v1 = v0.slice<4, 0>();
         REQUIRE(v1 == 0x14);
         BitVector<2> v2 = v0.slice<7, 6>();
         REQUIRE(v2 == 0x1);
+        REQUIRE(v0.slice<5, 0>() == 0x34);
 
+        // Concatenation
         BitVector<5> v3{0b00111};
-        BitVector<9> v4{0b101000100};
-        REQUIRE( concatenate(v3, v4) == 0b00111101000100 );
+        BitVector<6> v4{0b101000};
+        BitVector<3> v5{0b100};
+        BitVector<3> v6{0b101};
+        REQUIRE( concatenate(v3, v4) == 0b00111101000 );
+        REQUIRE( concatenate(v3, v4, v5) == 0b00111101000100 );
+        REQUIRE( concatenate(v3, v4, v5, v6) == 0b00111101000100101 );
+
+        // All in one
+        BitVector<12> vA{0x30f};
+        BitVector<8> vB{0x80};
+        BitVector<2> vC{0x3};
+        REQUIRE( concatenate( vA.slice<9, 8>(), vA.slice<3, 0>(), vB[7], vC)
+                == 0x1ff );
     }
 }
 
