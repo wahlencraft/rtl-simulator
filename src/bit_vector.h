@@ -6,9 +6,9 @@
 
 template <int N>
 using T =
-    typename std::conditional<N < 8, std::uint8_t,
-        typename std::conditional<N < 16, std::uint16_t,
-            typename std::conditional<N < 32, std::uint32_t,
+    typename std::conditional<N <= 8, std::uint8_t,
+        typename std::conditional<N <= 16, std::uint16_t,
+            typename std::conditional<N <= 32, std::uint32_t,
                 std::uint64_t
             >::type
         >::type
@@ -16,7 +16,7 @@ using T =
 
 template<int N>
 T<N> bitmask(T<N> value) {
-    T<N> ones = static_cast<T<N>>(~0);
+    T<N> ones = ~0;
     int shift;
     if (N <= 8) {
         shift = 8 - N;
@@ -28,6 +28,22 @@ T<N> bitmask(T<N> value) {
         shift = 64 - N;
     }
     return value & (ones >> shift);
+}
+
+template<int N>
+T<N> bitmask() {
+    T<N> ones = ~0;
+    int shift;
+    if (N <= 8) {
+        shift = 8 - N;
+    } else if (N <= 16) {
+        shift = 16 - N;
+    } else if (N <= 32) {
+        shift = 32 - N;
+    } else if (N <= 64) {
+        shift = 64 - N;
+    }
+    return (ones >> shift);
 }
 
 template <int N>
@@ -58,7 +74,14 @@ public:
         return *this;
     }
     BitVector<1> const operator[](size_t i) const {
-        return BitVector<1>{static_cast<T<1>>(value >> i)};
+        if (i < N) {
+            return BitVector<1>{static_cast<T<1>>(value >> i)};
+        } else {
+            throw std::out_of_range(
+                    "BitVector<" + std::to_string(N) +
+                    "> subscript out of range: [" +
+                    std::to_string(N - 1) + ", 0]");
+        }
     }
 
     template <int n, int m>
@@ -67,15 +90,23 @@ public:
         return BitVector<n-m+1>{bitmask<n - m + 1>(tmp)};
     }
 
-    BitVector signextend(int new_N) {
-        if (new_N > N) {
-        } else {
-        }
+    template <int M>
+    BitVector<M> extend() {
+        return BitVector<M>{static_cast<T<M>>(value)};
     }
 
-    BitVector extend(int new_N) {
-        if (new_N > N) {
+    template <int M>
+    BitVector<M> signextend() {
+        if ((*this)[N - 1] == 1) {
+            // msb is 1, extend with ones
+            T<M> M_mask = bitmask<M>();
+            T<N> N_mask = bitmask<N>();
+            T<M> high_mask = M_mask ^ static_cast<T<M>>(N_mask);
+            T<M> extended_value = static_cast<T<M>>(value) | high_mask;
+            return BitVector<M>{extended_value};
         } else {
+            // msb is 0, extend with zeros
+            return BitVector<M>{static_cast<T<M>>(value)};
         }
     }
 
