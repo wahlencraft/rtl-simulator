@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "component.h"
-#include "types.h"
+#include "bit_vector.h"
 
 template<int N>
 class InputPort: public Entity {
@@ -13,8 +13,7 @@ public:
     InputPort(InputPort const&) = delete;
     InputPort operator=(InputPort const&) = delete;
 
-    void set(bits<N> val) {
-        std::cout << "Setting " << name << " to: " << unsigned(val) << std::endl;
+    void set(BitVector<N> val) {
         if (is_set) {
             throw std::runtime_error(name + " has alredy been set");
         }
@@ -28,10 +27,10 @@ public:
         is_set = false;
         parent->reset();
     }
-    bits<N> get_value() { return value; }
+    BitVector<N> get_value() { return value; }
 
 private:
-    bits<N> value{};
+    BitVector<N> value{};
     bool is_set{false};
     Component *parent;
 };

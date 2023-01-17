@@ -5,7 +5,27 @@
 
 using namespace std;
 
+template <int N>
+class MyClass0 {
+public:
+    template<int n, int m>
+    int my_method() {
+        return n + m;
+    }
+};
+
+template <int N>
+class MyClass1 {
+public:
+    int my_method() {
+        MyClass0<N> obj{};
+        return obj.template my_method<N, N-1>();
+    }
+};
+
 int main() {
+    MyClass1<5> obj{};
+    cout << "Result = " << obj.my_method() << endl;
 
     //    w0   w1                   w2
     //     |    |                    |

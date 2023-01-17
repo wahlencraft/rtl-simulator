@@ -32,7 +32,7 @@ public:
     }
 
     // Setting a Register ends the set chain.
-    // bits<N>o start a set chain, call clock().
+    // To start a set chain, call clock().
     void set() override {
         if (is_set) {
             throw std::runtime_error(name + " has already been set");
@@ -49,14 +49,14 @@ public:
         }
     }
 
-    bits<N> get_value() {
+    BitVector<N> get_value() {
         return outvalue;
     }
 
 private:
     Wire<N> *outwire;
     bool is_set{false};
-    bits<N> outvalue{};
+    BitVector<N> outvalue{};
 };
 
 #endif  // REGISTER_H_

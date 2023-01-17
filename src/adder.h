@@ -1,7 +1,7 @@
 #ifndef ADDER_H_
 #define ADDER_H_
 
-#include "types.h"
+#include "bit_vector.h"
 
 template <int N>
 class Adder : public Component {
@@ -30,18 +30,15 @@ public:
         if (set_count == 3) {
             std::cout << "Setting " << name << std::endl;
             // Ready to calculate output
-            bits<N+1> sum = static_cast<bits<N+1>>(A.get_value())
-                      + static_cast<bits<N+1>>(B.get_value())
-                      + static_cast<bits<N+1>>(Cin.get_value());
-            std::cout << "A = " << unsigned(A.get_value())
-                      << " B = " << unsigned(B.get_value())
-                      << " Cin = " << unsigned(Cin.get_value())
-                      << " sum = " << unsigned(sum) << std::endl;
-            outwire->set(sum & MASK);
+
             if (Cout != nullptr) {
-                Cout->set((sum >> N) & 1);
-            } else if (sum != (sum & MASK)) {
-                // Overflow TODO
+                BitVector<N+1> sum = A.get_value().addc(B.get_value(), Cin.get_value());
+                outwire->set(sum.template slice<N-1, 0>());
+                Cout->set((sum[N]));
+            } else {
+                // Throw away carry bit
+                BitVector<N> sum = A.get_value().add(B.get_value(), Cin.get_value());
+                outwire->set(sum);
             }
         } else if (set_count > 3) {
             throw std::runtime_error(name + " has been set too many times");
@@ -52,7 +49,7 @@ private:
     Wire<N> *outwire;
     Wire<1> *Cout;
     int set_count = 0;
-    bits<N+1> const MASK = static_cast<bits<N+1>>((1 << N) - 1);
+    BitVector<N+1> const MASK = static_cast<BitVector<N+1>>((1 << N) - 1);
 };
 
 #endif  // ADDER_H_

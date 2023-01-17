@@ -6,7 +6,7 @@
 
 #include "component.h"
 #include "input_port.h"
-#include "types.h"
+#include "bit_vector.h"
 
 template <int N>
 class Wire : public Entity {
@@ -25,26 +25,25 @@ public:
 
     int get_width() const { return N; }
 
-    void set(bits<N> val) {
+    void set(BitVector<N> val) {
         if (is_set) {
             throw std::runtime_error(name + " has alredy been set");
         }
         is_set = true;
-        bits<N> value = val & MASK;
+        BitVector<N> value = val & MASK;
         if (val != value) {
             std::cout << "Warning: wire not wide enough for value" << std::endl;
         }
-        std::cout << "set " << name << " to: '" << unsigned(value) << "'" << std::endl;
 
         for (auto const &target : target_list) {
-            std::cout << "passing value to " << target->get_name() << std::endl;
+            std::cout << "passing " << value << " to " << target->get_name() << std::endl;
             target->set(value);
         }
     }
 
 private:
     bool is_set = false;
-    bits<N> const MASK = static_cast<bits<N>>((1 << N) - 1);
+    BitVector<N> const MASK = static_cast<BitVector<N>>((1 << N) - 1);
     std::list<InputPort<N>*> target_list;
 };
 

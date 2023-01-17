@@ -122,6 +122,52 @@ TEST_CASE( "BitVectors" ) {
         CHECK( pos7.signextend<12>() == 0x020 );
         CHECK( neg7.signextend<12>() == 0xfc0 );
     }
+
+    SECTION( "Bit Manipulation" ) {
+        BitVector<4> a{0b1101};
+        BitVector<4> b{0b0110};
+
+        CHECK( ~a == 0b0010 );
+        CHECK( (a | b) == 0b1111 );
+        CHECK( (a & b) == 0b0100 );
+        CHECK( (a ^ b) == 0b1011 );
+    }
+
+    SECTION( "Arithmetics" ) {
+        BitVector<1> const Cin_1{1};
+        BitVector<1> const Cin_0{0};
+
+        // Addition
+        BitVector<8> A0{120};
+        BitVector<8> B0{11};
+
+        CHECK( A0.add(B0) == 131 );
+        CHECK( A0.add(B0, Cin_1) == 132 );
+
+        // With Carry Out
+        BitVector<8> A1{0xf0};
+        BitVector<8> B1{0x0f};
+        CHECK( A1.addc(B1, Cin_0) == 0xff );
+        CHECK( A1.addc(B1) == 0xff );
+        CHECK( A1.addc(B1, Cin_1) == 0x100 );
+
+        // Inversion
+        A0 = 120;
+        CHECK( A0.neg() == -120 );
+
+        // Add with negative numbers
+        A0 = -110;
+        B0 = 120;
+        REQUIRE( A0.add(B0) == 10 );
+        REQUIRE( A0.add(B0, Cin_0) == 10 );
+        REQUIRE( A0.addc(B0) == 10 + (1<<8));
+        REQUIRE( A0.addc(B0, Cin_0) == 10 + (1<<8));
+
+        A0 = 0x50;
+        B0 = 0x92;
+        REQUIRE( A0.add(B0) == 0xe2 );
+
+    }
 }
 
 TEST_CASE( "Wires" ) {
@@ -168,6 +214,78 @@ TEST_CASE( "Registers" ) {
     }
 }
 
+TEST_CASE( "Adder" ) {
+    //
+    //           \-A-\/-B-/
+    //    |-------\      Cin
+    //    |        \    /
+    //    |         ----
+    //    |           |
+    //    |           |
+    //   _|_         _|_
+    //  |>  | cout  |>  | result
+    //
+    Register<8> result8{};
+    Wire<8> w_result8{&result8.in};
+    Register<1> cout8{};
+    Wire<1> w_cout8{&cout8.in};
+    Adder<8> adder8{&w_cout8, &w_result8};
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Basic test
+
+    adder8.A.set(0x05);
+    adder8.B.set(0x03);
+    adder8.Cin.set(0x01);
+
+    cout8.clock();
+    result8.clock();
+
+    CHECK( result8.get_value() == 0x09 );
+    CHECK( cout8.get_value() == 0x0 );
+
+    adder8.A.reset();
+    adder8.B.reset();
+    adder8.Cin.reset();
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Overflow
+
+    adder8.A.set(251);
+    adder8.B.set(6);
+    adder8.Cin.set(0);
+
+    cout8.clock();
+    result8.clock();
+
+    CHECK( result8.get_value() == 0x1 );
+    CHECK( cout8.get_value() == 0x1 );
+
+    adder8.A.reset();
+    adder8.B.reset();
+    adder8.Cin.reset();
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Subtraction
+
+    BitVector<8> val1 = 12;
+    BitVector<8> val2 = 11;
+
+    adder8.A.set(val1);
+    adder8.B.set(~val2);
+    adder8.Cin.set(1);
+
+    cout8.clock();
+    result8.clock();
+
+    CHECK( result8.get_value() == 0x1 );
+
+    adder8.A.reset();
+    adder8.B.reset();
+    adder8.Cin.reset();
+
+}
+
 TEST_CASE( "Constallation 1: Registers, adders and wires") {
     //
     //    r0    r1                  r2
@@ -176,10 +294,10 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
     //     |    |                    |
     //     |w0  |w1                  |w2
     //     |    |                    |
-    //     |    |---------------|    |
-    //     |    |               |    |
-    //   \-A-\/-B-/     w3    \-A-\/-B-/    w4   ___
-    //    \  a0  Cin-----------\  a1  Cin-------|>  | r3
+    //     |    |---------------|    |             ___
+    //     |    |               |    |            |>  | r3
+    //   \-A-\/-B-/     w3    \-A-\/-B-/    w4      |
+    //    \  a0  Cin-----------\  a1  Cin------------
     //     \    /               \    /
     //      ----                 ----
     //        |                    |
@@ -266,7 +384,7 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         r3.in.reset();
     }
 
-    SECTION( "Carry out" ) {
+    SECTION( "Overflow" ) {
 
         r0.in.set(0);
         r1.in.set(0x1);
@@ -296,8 +414,8 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
 
     SECTION( "Negative" ) {
 
-        r0.in.set(80);
-        r1.in.set(-110);
+        r0.in.set(-110);
+        r1.in.set(80);
         r2.in.set(120);
         r3.in.set(0);
 
@@ -313,8 +431,8 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         r4.clock();
         r5.clock();
 
-        REQUIRE( r5.get_value() == 10 );
-        REQUIRE( r4.get_value() == -30 );
+        CHECK( r5.get_value() == 200 );
+        CHECK( r4.get_value() == -30 );
 
         r0.in.reset();
         r1.in.reset();

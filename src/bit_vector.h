@@ -85,18 +85,18 @@ public:
     }
 
     template <int n, int m>
-    BitVector<n - m + 1> slice() {
+    BitVector<n - m + 1> slice() const {
         T<n - m + 1> tmp = static_cast<T<n-m+1>>(value >> m);
         return BitVector<n-m+1>{bitmask<n - m + 1>(tmp)};
     }
 
     template <int M>
-    BitVector<M> extend() {
+    BitVector<M> extend() const {
         return BitVector<M>{static_cast<T<M>>(value)};
     }
 
     template <int M>
-    BitVector<M> signextend() {
+    BitVector<M> signextend() const {
         if ((*this)[N - 1] == 1) {
             // msb is 1, extend with ones
             T<M> M_mask = bitmask<M>();
@@ -108,6 +108,57 @@ public:
             // msb is 0, extend with zeros
             return BitVector<M>{static_cast<T<M>>(value)};
         }
+    }
+
+    // Bit mainipulation
+    BitVector<N> operator|(BitVector<N> const &other) const {
+        T<N> result = value | other.get_value();
+        // Result is automatically cut to the correct bitlength
+        return BitVector<N>{result};
+    }
+    BitVector<N> operator&(BitVector<N> const &other) const {
+        T<N> result = value & other.get_value();
+        // Result is automatically cut to the correct bitlength
+        return BitVector<N>{result};
+    }
+    BitVector<N> operator^(BitVector<N> const &other) const {
+        T<N> result = value ^ other.get_value();
+        // Result is automatically cut to the correct bitlength
+        return BitVector<N>{result};
+    }
+    BitVector<N> operator~() const {
+        T<N> neg = ~value;
+        // The value is automatically cut to the correct number of bits in the
+        // constructor
+        return BitVector<N>{neg};
+    }
+
+    // Arithmetics
+    BitVector<N> add(BitVector<N> const &other) {
+        T<N> sum = get_value() + other.get_value();
+        return BitVector<N>{sum};
+    }
+    BitVector<N> add(BitVector<N> const &other, BitVector<1> const &Cin) {
+        T<N> sum = get_value() + other.get_value() + Cin.get_value();
+        return BitVector<N>{sum};
+    }
+    BitVector<N + 1> addc(BitVector<N> const &other) {
+        BitVector<N + 1> ext = extend<N+1>();
+        BitVector<N + 1> ext_other = other.extend<N+1>();
+        T<N + 1> sum = ext.get_value() + ext_other.get_value();
+        return BitVector<N + 1>{sum};
+    }
+    BitVector<N + 1> addc(BitVector<N> const &other, BitVector<1> const &Cin) {
+        BitVector<N + 1> ext = extend<N+1>();
+        BitVector<N + 1> ext_other = other.extend<N+1>();
+        BitVector<N + 1> ext_cin = Cin.extend<N+1>();
+        T<N + 1> sum = ext.get_value() + ext_other.get_value() + ext_cin.get_value();
+        return BitVector<N + 1>{sum};
+    }
+    BitVector<N> neg() const {
+        T<N> inv = ~value;
+        T<N> neg = inv + 1;
+        return BitVector<N>{neg};
     }
 
     T<N> get_value() const {return value;}
