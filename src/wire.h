@@ -11,9 +11,9 @@
 template <int N>
 class Wire : public Entity {
 public:
-    Wire(std::string name="Wire"): Entity(name), target_list{} {};
-    Wire(InputPort<N> *target, std::string name="Wire"): Entity(name), target_list{target} {}
-    Wire(std::initializer_list<InputPort<N>*> lst, std::string name="Wire"): Entity(name), target_list{lst} {}
+    Wire(std::string const &name="Wire"): Entity(name), target_list{} {};
+    Wire(InputPort<N> *target, std::string const &name="Wire"): Entity(name), target_list{target} {}
+    Wire(std::initializer_list<InputPort<N>*> lst, std::string const &name="Wire"): Entity(name), target_list{lst} {}
 
     void reset() override {
         std::cout << "Resetting " << name << std::endl;

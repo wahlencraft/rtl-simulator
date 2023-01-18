@@ -4,13 +4,15 @@
 #include <string>
 
 #include "entity.h"
+#include "component.h"
+#include "clockable.h"
 #include "wire.h"
 
 template <int N>
-class Register : public Component {
+class Register : public Component, public Clockable {
 public:
-    Register(std::string const &name="Register"): Component(name), outwire{nullptr} {}
-    Register(Wire<N> *outwire, std::string const &name="Register"): Component(name), outwire{outwire} {}
+    Register(std::string const &name="Register"): Component(name), Clockable(), outwire{nullptr} {}
+    Register(Wire<N> *outwire, std::string const &name="Register"): Component(name), Clockable(), outwire{outwire} {}
     Register(Register const&) = delete;
     Register operator=(Register const&) = delete;
 
@@ -42,8 +44,12 @@ public:
     }
 
     // Starts the set chain
-    void clock() {
+    void clock() override {
         outvalue = in.get_value();
+    }
+
+    // Start the set chain
+    void start() override {
         if (outwire != nullptr) {
             outwire->set(outvalue);
         }

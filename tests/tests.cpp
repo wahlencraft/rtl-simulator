@@ -4,6 +4,7 @@
 #include "adder.h"
 #include "register.h"
 #include "bit_vector.h"
+#include "sink.h"
 
 using namespace std;
 
@@ -190,27 +191,34 @@ TEST_CASE( "Registers" ) {
         Register<16> r1{&w};
     }
 
-    SECTION( "Set, clock and reset" ) {
+    SECTION( "Set, clock, start and reset" ) {
         Register<16> r{};
         CHECK_NOTHROW( r.in.set(23) );
         CHECK_NOTHROW( r.clock() );
+        CHECK_NOTHROW( r.start() );
         CHECK_NOTHROW( r.in.reset() );
 
         CHECK_NOTHROW( r.in.set(24) );
         CHECK_THROWS( r.in.set(24) );
     }
 
-    SECTION( "Set, clock and get_value" ) {
-        Register<16> r{};
+    SECTION( "Set, clock, start and get_value" ) {
+        Sink<16> sink{};
+        Wire<16> wire{&sink.in};
+        Register<16> r{&wire};
         r.in.set(23);
         r.clock();
+        r.start();
         r.in.reset();
 
-        REQUIRE( r.get_value() == 23 );
+        CHECK( r.get_value() == 23 );
         r.in.set(24);
-        REQUIRE( r.get_value() == 23 );
+        CHECK( r.get_value() == 23 );
         r.clock();
-        REQUIRE( r.get_value() == 24 );
+        CHECK( sink.get_value() == 23 );
+        CHECK( r.get_value() == 24 );
+        r.start();
+        CHECK( sink.get_value() == 24 );
     }
 }
 
@@ -341,9 +349,22 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         r1.clock();
         r2.clock();
         r3.clock();
+        r4.clock();
+        r5.clock();
+
+        r0.start();
+        r1.start();
+        r2.start();
+        r3.start();
+        r4.start();
+        r5.start();
 
         cout << "\n";
 
+        r0.clock();
+        r1.clock();
+        r2.clock();
+        r3.clock();
         r4.clock();
         r5.clock();
 
@@ -369,9 +390,22 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         r1.clock();
         r2.clock();
         r3.clock();
+        r4.clock();
+        r5.clock();
+
+        r0.start();
+        r1.start();
+        r2.start();
+        r3.start();
+        r4.start();
+        r5.start();
 
         cout << "\n";
 
+        r0.clock();
+        r1.clock();
+        r2.clock();
+        r3.clock();
         r4.clock();
         r5.clock();
 
@@ -397,9 +431,22 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         r1.clock();
         r2.clock();
         r3.clock();
+        r4.clock();
+        r5.clock();
+
+        r0.start();
+        r1.start();
+        r2.start();
+        r3.start();
+        r4.start();
+        r5.start();
 
         cout << "\n";
 
+        r0.clock();
+        r1.clock();
+        r2.clock();
+        r3.clock();
         r4.clock();
         r5.clock();
 
@@ -425,9 +472,22 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         r1.clock();
         r2.clock();
         r3.clock();
+        r4.clock();
+        r5.clock();
+
+        r0.start();
+        r1.start();
+        r2.start();
+        r3.start();
+        r4.start();
+        r5.start();
 
         cout << "\n";
 
+        r0.clock();
+        r1.clock();
+        r2.clock();
+        r3.clock();
         r4.clock();
         r5.clock();
 
