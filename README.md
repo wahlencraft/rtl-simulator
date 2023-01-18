@@ -6,9 +6,7 @@ simulator which can run at a high clock speed.
 The simulator will take advantage of the very parallel nature of a RTL design
 and compute multiple simulation paths concurrently.
 
-## Documentation
-
-### BitVector<N>
+## Documentation ### BitVector<N>
 A type for storing values of bitlength N. This class is very important for the
 implementation of other classes because it handles the storage and operation on
 the values, but you don't have to understand the details to use the simulator.
@@ -36,13 +34,17 @@ Most components has a few InputPorts. To set the component set each InputPort.
 The InputPorts will then call the Component::set() method which will only
 execute fully once all InputPorts has called it.
 
+### Clockable
+Virtual base class for some components, for example Registers.
+- `clock()`: Update the internal state of the clockable object based on it's 
+             current input.
+- `start()`: Start the set() chain.
+
 ### Register<N>: Clockable, Component
 The `InputPort` is called `in`.
 
-- `set(BitVec value)`: Set the value of a Register. This ends the set chain and the
-    output will not change until next clock cycle.
-- `clock(T value)`: Start a new clock cycle. Error if the register has not been
-    set.
+- `BitVector<N> get_value()`: Get the value stored in the register. 
+                              Mostly for test purposes.
 
 ### Adder<N>: Component
 ```
