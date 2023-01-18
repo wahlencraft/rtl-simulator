@@ -5,6 +5,7 @@
 #include "register.h"
 #include "bit_vector.h"
 #include "sink.h"
+#include "simple_components.h"
 
 using namespace std;
 
@@ -219,6 +220,17 @@ TEST_CASE( "Registers" ) {
         CHECK( r.get_value() == 24 );
         r.start();
         CHECK( sink.get_value() == 24 );
+    }
+}
+
+TEST_CASE( "Simple Components" ) {
+    SECTION( "Inverter" ) {
+        Sink<4> sink{};
+        Wire<4> wire{&sink.in};
+        Inverter<4> inverter{&wire};
+
+        inverter.in.set(0b1101);
+        CHECK( sink.get_value() == 0b0010 );
     }
 }
 
