@@ -17,14 +17,14 @@ public:
     BitVector<N> get_value() const {
         return value;
     }
-    InputPort<N> in{this, name+".in"};
+    InputPort<N> input{this, name+".in"};
 
     void set() override {
         if (is_set) {
             throw std::runtime_error(name + " has already been set");
         } else {
             is_set = true;
-            value = in.get_value();
+            value = input.get_value();
         }
     }
     void reset() override {

@@ -194,26 +194,26 @@ TEST_CASE( "Registers" ) {
 
     SECTION( "Set, clock, start and reset" ) {
         Register<16> r{};
-        CHECK_NOTHROW( r.in.set(23) );
+        CHECK_NOTHROW( r.input.set(23) );
         CHECK_NOTHROW( r.clock() );
         CHECK_NOTHROW( r.start() );
-        CHECK_NOTHROW( r.in.reset() );
+        CHECK_NOTHROW( r.input.reset() );
 
-        CHECK_NOTHROW( r.in.set(24) );
-        CHECK_THROWS( r.in.set(24) );
+        CHECK_NOTHROW( r.input.set(24) );
+        CHECK_THROWS( r.input.set(24) );
     }
 
     SECTION( "Set, clock, start and get_value" ) {
         Sink<16> sink{};
-        Wire<16> wire{&sink.in};
+        Wire<16> wire{&sink.input};
         Register<16> r{&wire};
-        r.in.set(23);
+        r.input.set(23);
         r.clock();
         r.start();
-        r.in.reset();
+        r.input.reset();
 
         CHECK( r.get_value() == 23 );
-        r.in.set(24);
+        r.input.set(24);
         CHECK( r.get_value() == 23 );
         r.clock();
         CHECK( sink.get_value() == 23 );
@@ -226,15 +226,15 @@ TEST_CASE( "Registers" ) {
 TEST_CASE( "Simple Components" ) {
     SECTION( "Inverter" ) {
         Sink<4> sink{};
-        Wire<4> wire{&sink.in};
+        Wire<4> wire{&sink.input};
         Inverter<4> inverter{&wire};
 
-        inverter.input[0].set(0b1101);
+        inverter.input.set(0b1101);
         CHECK( sink.get_value() == 0b0010 );
     }
     SECTION( "AND Gate" ) {
         Sink<4> sink{};
-        Wire<4> wire{&sink.in};
+        Wire<4> wire{&sink.input};
         ANDGate<4> gate{&wire};
 
         gate.input[0].set(0b0011);
@@ -243,7 +243,7 @@ TEST_CASE( "Simple Components" ) {
     }
     SECTION( "NAND Gate" ) {
         Sink<4> sink{};
-        Wire<4> wire{&sink.in};
+        Wire<4> wire{&sink.input};
         NANDGate<4> gate{&wire};
 
         gate.input[0].set(0b0011);
@@ -252,7 +252,7 @@ TEST_CASE( "Simple Components" ) {
     }
     SECTION( "OR Gate" ) {
         Sink<4> sink{};
-        Wire<4> wire{&sink.in};
+        Wire<4> wire{&sink.input};
         ORGate<4> gate{&wire};
 
         gate.input[0].set(0b0011);
@@ -261,7 +261,7 @@ TEST_CASE( "Simple Components" ) {
     }
     SECTION( "XOR Gate" ) {
         Sink<4> sink{};
-        Wire<4> wire{&sink.in};
+        Wire<4> wire{&sink.input};
         XORGate<4> gate{&wire};
 
         gate.input[0].set(0b0011);
@@ -270,7 +270,7 @@ TEST_CASE( "Simple Components" ) {
     }
     SECTION( "NOR Gate" ) {
         Sink<4> sink{};
-        Wire<4> wire{&sink.in};
+        Wire<4> wire{&sink.input};
         NORGate<4> gate{&wire};
 
         gate.input[0].set(0b0011);
@@ -291,9 +291,9 @@ TEST_CASE( "Adder" ) {
     //  |>  | cout  |>  | result
     //
     Register<8> result8{};
-    Wire<8> w_result8{&result8.in};
+    Wire<8> w_result8{&result8.input};
     Register<1> cout8{};
-    Wire<1> w_cout8{&cout8.in};
+    Wire<1> w_cout8{&cout8.input};
     Adder<8> adder8{&w_cout8, &w_result8};
 
     ///////////////////////////////////////////////////////////////////////////
@@ -374,8 +374,8 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
     Register<8> r4{"Register4"};
     Register<8> r5{"Register5"};
 
-    Wire<8> w5{&r4.in, "Wire5"};
-    Wire<8> w6{&r5.in, "Wire6"};
+    Wire<8> w5{&r4.input, "Wire5"};
+    Wire<8> w6{&r5.input, "Wire6"};
 
     Adder<8> a0{&w5, "Adder0"};
     Wire<8> w0{{&a0.A}, "Wire0"};
@@ -395,10 +395,10 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
 
     SECTION( "Simple test" ) {
 
-        r0.in.set(7);
-        r1.in.set(8);
-        r2.in.set(15);
-        r3.in.set(0);
+        r0.input.set(7);
+        r1.input.set(8);
+        r2.input.set(15);
+        r3.input.set(0);
 
         cout << "\n";
 
@@ -428,18 +428,18 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         REQUIRE( r5.get_value() == 23 );
         REQUIRE( r4.get_value() == 15 );
 
-        r0.in.reset();
-        r1.in.reset();
-        r2.in.reset();
-        r3.in.reset();
+        r0.input.reset();
+        r1.input.reset();
+        r2.input.reset();
+        r3.input.reset();
     }
 
     SECTION( "Carry in" ) {
 
-        r0.in.set(0);
-        r1.in.set(8);
-        r2.in.set(0);
-        r3.in.set(1);
+        r0.input.set(0);
+        r1.input.set(8);
+        r2.input.set(0);
+        r3.input.set(1);
 
         cout << "\n";
 
@@ -469,18 +469,18 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         REQUIRE( r5.get_value() == 9 );
         REQUIRE( r4.get_value() == 8 );
 
-        r0.in.reset();
-        r1.in.reset();
-        r2.in.reset();
-        r3.in.reset();
+        r0.input.reset();
+        r1.input.reset();
+        r2.input.reset();
+        r3.input.reset();
     }
 
     SECTION( "Overflow" ) {
 
-        r0.in.set(0);
-        r1.in.set(0x1);
-        r2.in.set(0xff);
-        r3.in.set(0);
+        r0.input.set(0);
+        r1.input.set(0x1);
+        r2.input.set(0xff);
+        r3.input.set(0);
 
         cout << "\n";
 
@@ -510,18 +510,18 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         REQUIRE( r5.get_value() == 0 );
         REQUIRE( r4.get_value() == 2 );
 
-        r0.in.reset();
-        r1.in.reset();
-        r2.in.reset();
-        r3.in.reset();
+        r0.input.reset();
+        r1.input.reset();
+        r2.input.reset();
+        r3.input.reset();
     }
 
     SECTION( "Negative" ) {
 
-        r0.in.set(-110);
-        r1.in.set(80);
-        r2.in.set(120);
-        r3.in.set(0);
+        r0.input.set(-110);
+        r1.input.set(80);
+        r2.input.set(120);
+        r3.input.set(0);
 
         cout << "\n";
 
@@ -551,9 +551,9 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         CHECK( r5.get_value() == 200 );
         CHECK( r4.get_value() == -30 );
 
-        r0.in.reset();
-        r1.in.reset();
-        r2.in.reset();
-        r3.in.reset();
+        r0.input.reset();
+        r1.input.reset();
+        r2.input.reset();
+        r3.input.reset();
     }
 }

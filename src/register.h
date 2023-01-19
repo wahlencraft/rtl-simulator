@@ -16,7 +16,7 @@ public:
     Register(Register const&) = delete;
     Register operator=(Register const&) = delete;
 
-    InputPort<N> in{this, name + ".in"};
+    InputPort<N> input{this, name + ".in"};
 
     // Starts the reset chain
     void reset() override {
@@ -45,7 +45,7 @@ public:
 
     // Starts the set chain
     void clock() override {
-        outvalue = in.get_value();
+        outvalue = input.get_value();
     }
 
     // Start the set chain

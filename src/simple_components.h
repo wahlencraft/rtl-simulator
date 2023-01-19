@@ -8,21 +8,21 @@
 #include "input_port.h"
 #include "bit_vector.h"
 
-template <int N, int inputs>
+template <int N, int INPUTS>
 class SimpleComponent: public Component {
 public:
     SimpleComponent(Wire<N> *outwire, std::string const &name="SimpleComponent"): Component(name), input{}, outwire{outwire} {
         input.fill(InputPort<N>{this, name+".input[]"});
     }
     SimpleComponent(SimpleComponent const &) = delete;
-    void operator=(SimpleComponent<N, inputs> const &) = delete;
+    void operator=(SimpleComponent<N, INPUTS> const &) = delete;
 
-    std::array<InputPort<N>, inputs> input;
+    std::array<InputPort<N>, INPUTS> input;
 
     void set() override {
-        if (++set_count > inputs) {
-            throw std::runtime_error(name + " has already been set " + std::to_string(inputs) + " times");
-        } else if (set_count == inputs) {
+        if (++set_count > INPUTS) {
+            throw std::runtime_error(name + " has already been set " + std::to_string(INPUTS) + " times");
+        } else if (set_count == INPUTS) {
             BitVector<N> value = calculate_outvalue();
             outwire->set(value);
         }
@@ -47,10 +47,11 @@ template <int N>
 class Inverter: public SimpleComponent<N, 1> {
 public:
     Inverter(Wire<N> *outwire, std::string const &name="Inverter"): SimpleComponent<N, 1>(outwire, name) {}
+    InputPort<N> &input = SimpleComponent<N, 1>::input[0];
 
 private:
     BitVector<N> calculate_outvalue() override {
-        return ~(SimpleComponent<N, 1>::input[0].get_value());
+        return ~(input.get_value());
     }
 };
 
