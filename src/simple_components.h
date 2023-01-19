@@ -1,33 +1,38 @@
-#ifndef SIMPLE_COMPONENT_H_
-#define SIMPLE_COMPONENT_H_
+#ifndef SIMPLE_COMPONENTS_H_
+#define SIMPLE_COMPONENTS_H_
 
 #include <string>
+#include <array>
 
 #include "component.h"
 #include "input_port.h"
 #include "bit_vector.h"
 
-template <int N>
+template <int N, int inputs>
 class SimpleComponent: public Component {
 public:
-    SimpleComponent(Wire<N> *outwire, std::string const &name="SimpleComponent"): Component(name), outwire{outwire} {}
+    SimpleComponent(Wire<N> *outwire, std::string const &name="SimpleComponent"): Component(name), input{}, outwire{outwire} {
+        input.fill(InputPort<N>{this, name+".input[]"});
+    }
     SimpleComponent(SimpleComponent const &) = delete;
-    void operator=(SimpleComponent<N> const &) = delete;
-    InputPort<N> in{this, name + ".in"};
+    void operator=(SimpleComponent<N, inputs> const &) = delete;
+
+    std::array<InputPort<N>, inputs> input;
 
     void set() override {
-        if (is_set) {
-            throw std::runtime_error(name + " has already been set");
-        } else {
-            is_set = true;
+        if (++set_count > inputs) {
+            throw std::runtime_error(name + " has already been set " + std::to_string(inputs) + " times");
+        } else if (set_count == inputs) {
             BitVector<N> value = calculate_outvalue();
             outwire->set(value);
         }
     }
 
     void reset() override {
-        is_set = false;
-        outwire->reset();
+        if (set_count) {
+            set_count = 0;
+            outwire->reset();
+        }
     }
 
 protected:
@@ -35,20 +40,74 @@ protected:
 
 private:
     Wire<N> *outwire;
-    bool is_set{false};
+    int set_count{0};
 };
 
 template <int N>
-class Inverter: public SimpleComponent<N> {
+class Inverter: public SimpleComponent<N, 1> {
 public:
-    Inverter(Wire<N> *outwire, std::string const &name="Inverter"): SimpleComponent<N>(outwire, name) {}
+    Inverter(Wire<N> *outwire, std::string const &name="Inverter"): SimpleComponent<N, 1>(outwire, name) {}
 
 private:
     BitVector<N> calculate_outvalue() override {
-        return ~(SimpleComponent<N>::in.get_value());
+        return ~(SimpleComponent<N, 1>::input[0].get_value());
     }
 };
 
+template <int N>
+class ANDGate: public SimpleComponent<N, 2> {
+public:
+    ANDGate(Wire<N> *outwire, std::string const &name="AndGate"): SimpleComponent<N, 2>(outwire, name) {}
 
-#endif  // SIMPLE_COMPONENT_H_
+private:
+    BitVector<N> calculate_outvalue() override {
+        return this->input[0].get_value() & this->input[1].get_value();
+    }
+};
+
+template <int N>
+class NANDGate: public SimpleComponent<N, 2> {
+public:
+    NANDGate(Wire<N> *outwire, std::string const &name="AndGate"): SimpleComponent<N, 2>(outwire, name) {}
+
+private:
+    BitVector<N> calculate_outvalue() override {
+        return ~(this->input[0].get_value() & this->input[1].get_value());
+    }
+};
+
+template <int N>
+class ORGate: public SimpleComponent<N, 2> {
+public:
+    ORGate(Wire<N> *outwire, std::string const &name="AndGate"): SimpleComponent<N, 2>(outwire, name) {}
+
+private:
+    BitVector<N> calculate_outvalue() override {
+        return this->input[0].get_value() | this->input[1].get_value();
+    }
+};
+
+template <int N>
+class XORGate: public SimpleComponent<N, 2> {
+public:
+    XORGate(Wire<N> *outwire, std::string const &name="AndGate"): SimpleComponent<N, 2>(outwire, name) {}
+
+private:
+    BitVector<N> calculate_outvalue() override {
+        return this->input[0].get_value() ^ this->input[1].get_value();
+    }
+};
+
+template <int N>
+class NORGate: public SimpleComponent<N, 2> {
+public:
+    NORGate(Wire<N> *outwire, std::string const &name="AndGate"): SimpleComponent<N, 2>(outwire, name) {}
+
+private:
+    BitVector<N> calculate_outvalue() override {
+        return ~(this->input[0].get_value() | this->input[1].get_value());
+    }
+};
+
+#endif  // SIMPLE_COMPONENTS_H_
 

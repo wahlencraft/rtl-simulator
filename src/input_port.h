@@ -9,9 +9,14 @@
 template<int N>
 class InputPort: public Entity {
 public:
-    InputPort(Component *parent, std::string const &name="InputPort"): Entity(name), parent{parent} {};
-    InputPort(InputPort const&) = delete;
-    InputPort operator=(InputPort const&) = delete;
+    InputPort(Component *parent=nullptr, std::string const &name="InputPort"): Entity(name), parent{parent} {};
+    InputPort(InputPort const& other) = delete;
+    InputPort &operator=(InputPort const& other) {
+        parent = other.parent;
+        value = other.value;
+        is_set = other.is_set;
+        return *this;
+    }
 
     void set(BitVector<N> val) {
         if (is_set) {

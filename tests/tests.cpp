@@ -229,8 +229,53 @@ TEST_CASE( "Simple Components" ) {
         Wire<4> wire{&sink.in};
         Inverter<4> inverter{&wire};
 
-        inverter.in.set(0b1101);
+        inverter.input[0].set(0b1101);
         CHECK( sink.get_value() == 0b0010 );
+    }
+    SECTION( "AND Gate" ) {
+        Sink<4> sink{};
+        Wire<4> wire{&sink.in};
+        ANDGate<4> gate{&wire};
+
+        gate.input[0].set(0b0011);
+        gate.input[1].set(0b0101);
+        CHECK( sink.get_value() == 0b0001 );
+    }
+    SECTION( "NAND Gate" ) {
+        Sink<4> sink{};
+        Wire<4> wire{&sink.in};
+        NANDGate<4> gate{&wire};
+
+        gate.input[0].set(0b0011);
+        gate.input[1].set(0b0101);
+        CHECK( sink.get_value() == 0b1110 );
+    }
+    SECTION( "OR Gate" ) {
+        Sink<4> sink{};
+        Wire<4> wire{&sink.in};
+        ORGate<4> gate{&wire};
+
+        gate.input[0].set(0b0011);
+        gate.input[1].set(0b0101);
+        CHECK( sink.get_value() == 0b0111 );
+    }
+    SECTION( "XOR Gate" ) {
+        Sink<4> sink{};
+        Wire<4> wire{&sink.in};
+        XORGate<4> gate{&wire};
+
+        gate.input[0].set(0b0011);
+        gate.input[1].set(0b0101);
+        CHECK( sink.get_value() == 0b0110 );
+    }
+    SECTION( "NOR Gate" ) {
+        Sink<4> sink{};
+        Wire<4> wire{&sink.in};
+        NORGate<4> gate{&wire};
+
+        gate.input[0].set(0b0011);
+        gate.input[1].set(0b0101);
+        CHECK( sink.get_value() == 0b1000 );
     }
 }
 
