@@ -15,7 +15,8 @@ public:
     Clockable() = default;
     virtual ~Clockable() = default;
     virtual void clock() = 0;
-    virtual void start() = 0;
+    virtual void start_set_chain() = 0;
+    virtual void start_reset_chain() = 0;
 
 };
 

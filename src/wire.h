@@ -15,6 +15,15 @@ public:
     Wire(InputPort<N> *target, std::string const &name="Wire"): Entity(name), target_list{target} {}
     Wire(std::initializer_list<InputPort<N>*> lst, std::string const &name="Wire"): Entity(name), target_list{lst} {}
 
+    void add_targets(InputPort<N>* item) {
+        target_list.push_back(item);
+    }
+    void add_targets(std::initializer_list<InputPort<N>*> lst) {
+        for (auto item : lst) {
+            target_list.push_back(item);
+        }
+    }
+
     void reset() override {
         std::cout << "Resetting " << name << std::endl;
         is_set = false;
@@ -26,6 +35,7 @@ public:
     int get_width() const { return N; }
 
     void set(BitVector<N> val) {
+        std::cout << "Setting " << name << std::endl;
         if (is_set) {
             throw std::runtime_error(name + " has alredy been set");
         }

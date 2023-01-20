@@ -7,6 +7,7 @@
 #include "bit_vector.h"
 #include "sink.h"
 #include "simple_components.h"
+#include "clock.h"
 
 using namespace std;
 
@@ -188,16 +189,24 @@ TEST_CASE( "Wires" ) {
 TEST_CASE( "Registers" ) {
     SECTION( "Constructors" ) {
         Register<8> r0{};
+        CHECK( r0.get_value() == 0 );
 
-        Wire<16> w{};
-        Register<16> r1{&w};
+        Register<8> r1{0x11};
+        CHECK( r1.get_value() == 0x11 );
+
+        Wire<16> w0{};
+        Register<16> r2{&w0};
+
+        Wire<16> w1{};
+        Register<16> r3{0x22, &w1};
+        CHECK( r3.get_value() == 0x22 );
     }
 
     SECTION( "Set, clock, start and reset" ) {
         Register<16> r{};
         CHECK_NOTHROW( r.input.set(23) );
         CHECK_NOTHROW( r.clock() );
-        CHECK_NOTHROW( r.start() );
+        CHECK_NOTHROW( r.start_set_chain() );
         CHECK_NOTHROW( r.input.reset() );
 
         CHECK_NOTHROW( r.input.set(24) );
@@ -210,8 +219,9 @@ TEST_CASE( "Registers" ) {
         Register<16> r{&wire};
         r.input.set(23);
         r.clock();
-        r.start();
+        r.start_set_chain();
         r.input.reset();
+        r.start_reset_chain();
 
         CHECK( r.get_value() == 23 );
         r.input.set(24);
@@ -219,7 +229,7 @@ TEST_CASE( "Registers" ) {
         r.clock();
         CHECK( sink.get_value() == 23 );
         CHECK( r.get_value() == 24 );
-        r.start();
+        r.start_set_chain();
         CHECK( sink.get_value() == 24 );
     }
 }
@@ -229,7 +239,7 @@ TEST_CASE( "Constants" ) {
     Wire<6> w{&s.input};
     Constant<6> c{0x24, &w};
 
-    c.start();
+    c.start_set_chain();
     CHECK( s.get_value() == 0x24 );
 }
 
@@ -419,12 +429,12 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         r4.clock();
         r5.clock();
 
-        r0.start();
-        r1.start();
-        r2.start();
-        r3.start();
-        r4.start();
-        r5.start();
+        r0.start_set_chain();
+        r1.start_set_chain();
+        r2.start_set_chain();
+        r3.start_set_chain();
+        r4.start_set_chain();
+        r5.start_set_chain();
 
         cout << "\n";
 
@@ -460,12 +470,12 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         r4.clock();
         r5.clock();
 
-        r0.start();
-        r1.start();
-        r2.start();
-        r3.start();
-        r4.start();
-        r5.start();
+        r0.start_set_chain();
+        r1.start_set_chain();
+        r2.start_set_chain();
+        r3.start_set_chain();
+        r4.start_set_chain();
+        r5.start_set_chain();
 
         cout << "\n";
 
@@ -501,12 +511,12 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         r4.clock();
         r5.clock();
 
-        r0.start();
-        r1.start();
-        r2.start();
-        r3.start();
-        r4.start();
-        r5.start();
+        r0.start_set_chain();
+        r1.start_set_chain();
+        r2.start_set_chain();
+        r3.start_set_chain();
+        r4.start_set_chain();
+        r5.start_set_chain();
 
         cout << "\n";
 
@@ -542,12 +552,12 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         r4.clock();
         r5.clock();
 
-        r0.start();
-        r1.start();
-        r2.start();
-        r3.start();
-        r4.start();
-        r5.start();
+        r0.start_set_chain();
+        r1.start_set_chain();
+        r2.start_set_chain();
+        r3.start_set_chain();
+        r4.start_set_chain();
+        r5.start_set_chain();
 
         cout << "\n";
 
@@ -567,3 +577,120 @@ TEST_CASE( "Constallation 1: Registers, adders and wires") {
         r3.input.reset();
     }
 }
+
+TEST_CASE( "Constallation 2: Owned by Clock") {
+
+    // c0 = 0, c1 = 1, c2 = 0, c3 = 1
+    // r0 = 25, r1 = 25, r2 = 0; r3 = 0;
+    //                                            c1
+    //                                            |w4
+    //    |----|                    |----|       _|_
+    //    |   _|_                   |   _|_      \ / i0
+    //    |  |>  |r0                |  |>  |r1    O
+    //    |    |    c0              |    |        |
+    //    |    |w0  |w1             |    |w2  |---|w3
+    //    |    |    |               |    |    |
+    //    |  \-A-\/-B-/             |  \-A-\/-B-/
+    //    |   \  a0  Cin------c2    |   \  a1  Cin------ c3
+    //    |    \    /     w5        |    \    /     w6
+    //    |     ----                |     ----
+    //    |       |                 |       |
+    //    --------* w7              --------* w8
+    //            |                         |
+    //           _|_                       _|_
+    //          |>  |r2                   |>  |r3
+    //            |                         |
+    //            |                         |w10
+    //            | w9                     _|_
+    //            |                        \ /i1
+    //            |                         O
+    //            |                         |
+    //            *---------                |w11
+    //            |        |                |
+    //            | |------|-*---------------
+    //           _|_|_    _|_|_
+    //          |  OR |  | XOR |
+    //             |        |
+    //             |w12     |w13
+    //             |        |
+    //             s0       s1
+
+    // Declare all wires
+    Wire<8> w0;
+    Wire<8> w1;
+    Wire<8> w2;
+    Wire<8> w3;
+    Wire<8> w4;
+    Wire<1> w5;
+    Wire<1> w6;
+    Wire<8> w7;
+    Wire<8> w8;
+    Wire<8> w9;
+    Wire<8> w10;
+    Wire<8> w11;
+    Wire<8> w12;
+    Wire<8> w13;
+
+    // Pipeline stage 1: Clockables
+    Register<8> r0{25, &w0};
+    Register<8> r1{25, &w2};
+    Constant<8> c0{1, &w1};
+    Constant<8> c1{1, &w4};
+    Constant<1> c2{0, &w5};
+    Constant<1> c3{1, &w6};
+
+    // Pipeline stage 1: Other components
+    Adder<8> a0{&w7};
+    Adder<8> a1{&w8};
+    Inverter<8> i0{&w3};
+
+    // Pipeline stage 2: Clockables
+    Register<8> r2{&w9};
+    Register<8> r3{&w10};
+
+    // Pipeline stage 2: Other components
+    Inverter<8> i1{&w11};
+    ORGate<8> OR{&w12};
+    XORGate<8> XOR{&w13};
+    Sink<8> s0{};
+    Sink<8> s1{};
+
+    // Make the clock
+    Clock system_clock{&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3};
+
+    // Add wire targets
+    w0.add_targets(&a0.A);
+    w1.add_targets(&a0.B);
+    w2.add_targets(&a1.A);
+    w3.add_targets(&a1.B);
+    w4.add_targets(&i0.input);
+    w5.add_targets(&a0.Cin);
+    w6.add_targets(&a1.Cin);
+    w7.add_targets({&r0.input, &r2.input});
+    w8.add_targets({&r1.input, &r3.input});
+    w9.add_targets({&OR.input[0], &XOR.input[0]});
+    w10.add_targets(&i1.input);
+    w11.add_targets({&OR.input[1], &XOR.input[1]});
+    w12.add_targets(&s0.input);
+    w13.add_targets(&s1.input);
+
+    // Tests
+    system_clock.clock();
+
+    CHECK( r0.get_value() == 26 );
+    CHECK( r1.get_value() == 24 );
+    CHECK( r2.get_value() == 26 );
+    CHECK( r3.get_value() == 24 );
+    CHECK( s0.get_value() == (0 | ~0) );
+    CHECK( s1.get_value() == (0 ^ ~0) );
+
+    system_clock.clock();
+    CHECK( r0.get_value() == 27 );
+    CHECK( r1.get_value() == 23 );
+    CHECK( r2.get_value() == 27 );
+    CHECK( r3.get_value() == 23 );
+    CHECK( s0.get_value() == (26 | ~24) );
+    CHECK( s1.get_value() == (26 ^ ~24) );
+
+}
+

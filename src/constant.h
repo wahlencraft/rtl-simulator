@@ -11,12 +11,19 @@
 template <int N>
 class Constant: public Clockable {
 public:
-    Constant(BitVector<N> value, Wire<N> *outwire): Clockable(), value{value}, outwire{outwire} {}
+    Constant(BitVector<N> value, Wire<N> *outwire): 
+        Clockable(), value{value}, outwire{outwire} {}
     Constant(Constant<N> const &) = delete;
     void operator=(Constant<N> const &) = delete;
-    void clock() override {}
-    void start() override {
+    void clock() override {
+        std::cout << "clocking constant=" << value << std::endl;
+    }
+    void start_set_chain() override {
+        std::cout << "Starting setchain constant=" << value << std::endl;
         outwire->set(value);
+    }
+    void start_reset_chain() override {
+        outwire->reset();
     }
 
 private:

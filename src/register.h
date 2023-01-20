@@ -11,26 +11,34 @@
 template <int N>
 class Register : public Component, public Clockable {
 public:
-    Register(std::string const &name="Register"): Component(name), Clockable(), outwire{nullptr} {}
-    Register(Wire<N> *outwire, std::string const &name="Register"): Component(name), Clockable(), outwire{outwire} {}
+    Register(std::string const &name="Register"):
+        Component(name), Clockable(), outvalue{0}, outwire{nullptr} {}
+    Register(Wire<N> *outwire, std::string const &name="Register"):
+        Component(name), Clockable(), outvalue{0}, outwire{outwire} {}
+    Register(BitVector<N> value, std::string const &name="Register"):
+        Component(name), Clockable(), outvalue{value}, outwire{nullptr} {}
+    Register(BitVector<N> value, Wire<N> *outwire, std::string const &name="Register"):
+        Component(name), Clockable(), outvalue{value}, outwire{outwire} {}
     Register(Register const&) = delete;
     Register operator=(Register const&) = delete;
 
     InputPort<N> input{this, name + ".in"};
 
-    // Starts the reset chain
-    void reset() override {
-        if (is_set) {
-            // Registers will be the first to be reset (called by the
-            // simulator) and will start the reset chain. However the
-            // last wire will call upon the InputPort of a Register (which does
-            // not know that it's parent is a Register), so each register will
-            // be reset twice. It is important to not continnue the reset flow
-            // this second time.
-            is_set = false;
-            if (outwire != nullptr)
-                outwire->reset();
+    void start_set_chain() override {
+        std::cout << "Starting setchain from " << name << std::endl;
+        if (outwire != nullptr) {
+            outwire->set(outvalue);
         }
+    }
+
+    void start_reset_chain() override {
+        if (outwire != nullptr)
+            outwire->reset();
+    }
+
+    void reset() override {
+        // This is the last stage in the reset chain
+        is_set = false;
     }
 
     // Setting a Register ends the set chain.
@@ -45,14 +53,8 @@ public:
 
     // Starts the set chain
     void clock() override {
+        std::cout << "clocking " << name << std::endl;
         outvalue = input.get_value();
-    }
-
-    // Start the set chain
-    void start() override {
-        if (outwire != nullptr) {
-            outwire->set(outvalue);
-        }
     }
 
     BitVector<N> get_value() {
@@ -60,9 +62,9 @@ public:
     }
 
 private:
+    BitVector<N> outvalue;
     Wire<N> *outwire;
     bool is_set{false};
-    BitVector<N> outvalue{};
 };
 
 #endif  // REGISTER_H_
