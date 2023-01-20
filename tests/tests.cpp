@@ -3,6 +3,7 @@
 #include "wire.h"
 #include "adder.h"
 #include "register.h"
+#include "constant.h"
 #include "bit_vector.h"
 #include "sink.h"
 #include "simple_components.h"
@@ -221,6 +222,15 @@ TEST_CASE( "Registers" ) {
         r.start();
         CHECK( sink.get_value() == 24 );
     }
+}
+
+TEST_CASE( "Constants" ) {
+    Sink<6> s{};
+    Wire<6> w{&s.input};
+    Constant<6> c{0x24, &w};
+
+    c.start();
+    CHECK( s.get_value() == 0x24 );
 }
 
 TEST_CASE( "Simple Components" ) {
