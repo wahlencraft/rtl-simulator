@@ -7,8 +7,9 @@
 
 class Clock {
 public:
-    Clock();
+    Clock(unsigned max_threads=0);
     Clock(std::initializer_list<Clockable*> clockables);
+    Clock(unsigned max_threads, std::initializer_list<Clockable*> clockables);
 
     void add_clockable(Clockable *clockable);
     void clock();
@@ -16,6 +17,7 @@ public:
 private:
     long long unsigned cycle{0};
     std::list<Clockable*> clockables;
+    unsigned const max_threads = 0;
 
 };
 

@@ -655,9 +655,6 @@ TEST_CASE( "Constallation 2: Owned by Clock") {
     Sink<8> s0{"Sink0"};
     Sink<8> s1{"Sink1"};
 
-    // Make the clock
-    Clock system_clock{&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3};
-
     // Add wire targets
     w0.add_targets(&a0.A);
     w1.add_targets(&a0.B);
@@ -674,24 +671,28 @@ TEST_CASE( "Constallation 2: Owned by Clock") {
     w12.add_targets(&s0.input);
     w13.add_targets(&s1.input);
 
-    // Tests
-    cout << "\nTest Clock" << endl;
-    system_clock.clock();
+    SECTION("Check output") {
+        // Make the clock
+        Clock system_clock{20, {&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3}};
 
-    CHECK( r0.get_value() == 26 );
-    CHECK( r1.get_value() == 24 );
-    CHECK( r2.get_value() == 26 );
-    CHECK( r3.get_value() == 24 );
-    CHECK( s0.get_value() == (0 | ~0) );
-    CHECK( s1.get_value() == (0 ^ ~0) );
+        // Tests
+        cout << "\nTest Clock" << endl;
+        system_clock.clock();
 
-    system_clock.clock();
-    CHECK( r0.get_value() == 27 );
-    CHECK( r1.get_value() == 23 );
-    CHECK( r2.get_value() == 27 );
-    CHECK( r3.get_value() == 23 );
-    CHECK( s0.get_value() == (26 | ~24) );
-    CHECK( s1.get_value() == (26 ^ ~24) );
+        CHECK( r0.get_value() == 26 );
+        CHECK( r1.get_value() == 24 );
+        CHECK( r2.get_value() == 26 );
+        CHECK( r3.get_value() == 24 );
+        CHECK( s0.get_value() == (0 | ~0) );
+        CHECK( s1.get_value() == (0 ^ ~0) );
 
+        system_clock.clock();
+        CHECK( r0.get_value() == 27 );
+        CHECK( r1.get_value() == 23 );
+        CHECK( r2.get_value() == 27 );
+        CHECK( r3.get_value() == 23 );
+        CHECK( s0.get_value() == (26 | ~24) );
+        CHECK( s1.get_value() == (26 ^ ~24) );
+    }
 }
 

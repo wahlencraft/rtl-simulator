@@ -4,6 +4,7 @@
 #include <mutex>
 #include <thread>
 #include <condition_variable>
+#include <atomic>
 
 #include <vector>
 #include <queue>
@@ -16,15 +17,15 @@ public:
     ThreadPool &operator=(ThreadPool const &) = delete;
     ThreadPool &operator=(ThreadPool &&) = delete;
 
-    ThreadPool(int threads);
+    ThreadPool(unsigned threads=0);
     ~ThreadPool();
 
     void enqueue(std::function<void()> job);
-    void wait_for_empty_queue();
+    void wait_for_jobs_to_finish();
 
 private:
-    int const threads;
     bool stop = false;
+    std::atomic_int running_jobs{0};
     std::vector<std::thread> workers{};
     std::queue<std::function<void()>> tasks{};
     std::mutex mtx{};

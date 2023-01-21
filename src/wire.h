@@ -35,7 +35,7 @@ public:
     int get_width() const { return N; }
 
     void set(BitVector<N> val) {
-        std::cout << "Setting " << name << std::endl;
+        std::cout << "Setting " << name << "=" << val<< std::endl;
         if (is_set) {
             throw std::runtime_error(name + " has alredy been set");
         }
