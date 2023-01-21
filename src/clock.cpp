@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "clock.h"
+#include "thread_pool.h"
 
 using namespace std;
 
@@ -16,18 +17,25 @@ void Clock::clock() {
     cout << "\nStarting clockcycle " << cycle << endl;
     ++cycle;
 
-    for (Clockable *clockable : clockables) {
-        // TODO spawn threads
-        clockable->start_set_chain();
-    }
-    // TODO join threads
-    for (Clockable *clockable : clockables) {
-        // TODO spawn threads
-        clockable->start_reset_chain();
-    }
-    // TODO join threads
+    ThreadPool thread_pool{4};
 
     for (Clockable *clockable : clockables) {
+        thread_pool.enqueue( [clockable]() { clockable->start_set_chain(); } );
+    }
+
+    cout << "\nSet chain done" << endl;
+
+    thread_pool.wait_for_empty_queue();
+
+    for (Clockable *clockable : clockables) {
+        thread_pool.enqueue( [clockable]() { clockable->start_reset_chain(); } );
+    }
+
+    thread_pool.wait_for_empty_queue();
+
+    for (Clockable *clockable : clockables) {
+        // Clock is very fast and does not start a chain. It is probably faster
+        // to do all of them in one thread.
         clockable->clock();
     }
 }

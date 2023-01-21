@@ -1,6 +1,8 @@
 #ifndef ADDER_H_
 #define ADDER_H_
 
+#include <atomic>
+
 #include "bit_vector.h"
 
 template <int N>
@@ -16,9 +18,12 @@ public:
     InputPort<1> Cin{this, name + ".Cin"};
 
     void reset() override {
-        if (set_count) {
+        // set_count_copy = set_count
+        // set_count = 0
+        int const set_count_copy = set_count.exchange(0);
+
+        if (set_count_copy) {
             std::cout << "Reseting " << name << std::endl;
-            set_count = 0;
             if (Cout != nullptr)
                 Cout->reset();
             outwire->reset();
@@ -26,8 +31,8 @@ public:
     }
 
     void set() override {
-        ++set_count;
-        if (set_count == 3) {
+        int const set_count_copy = ++set_count;
+        if (set_count_copy == 3) {
             std::cout << "Setting " << name << std::endl;
             // Ready to calculate output
 
@@ -40,7 +45,7 @@ public:
                 BitVector<N> sum = A.get_value().add(B.get_value(), Cin.get_value());
                 outwire->set(sum);
             }
-        } else if (set_count > 3) {
+        } else if (set_count_copy > 3) {
             throw std::runtime_error(name + " has been set too many times");
         }
     }
@@ -48,7 +53,7 @@ public:
 private:
     Wire<N> *outwire;
     Wire<1> *Cout;
-    int set_count = 0;
+    std::atomic_int set_count = 0;
     BitVector<N+1> const MASK = static_cast<BitVector<N+1>>((1 << N) - 1);
 };
 

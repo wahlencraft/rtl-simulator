@@ -19,7 +19,7 @@ public:
         std::cout << "clocking constant=" << value << std::endl;
     }
     void start_set_chain() override {
-        std::cout << "Starting setchain constant=" << value << std::endl;
+        std::cout << "Starting setchain from constant=" << value << std::endl;
         outwire->set(value);
     }
     void start_reset_chain() override {

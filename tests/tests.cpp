@@ -616,44 +616,44 @@ TEST_CASE( "Constallation 2: Owned by Clock") {
     //             s0       s1
 
     // Declare all wires
-    Wire<8> w0;
-    Wire<8> w1;
-    Wire<8> w2;
-    Wire<8> w3;
-    Wire<8> w4;
-    Wire<1> w5;
-    Wire<1> w6;
-    Wire<8> w7;
-    Wire<8> w8;
-    Wire<8> w9;
-    Wire<8> w10;
-    Wire<8> w11;
-    Wire<8> w12;
-    Wire<8> w13;
+    Wire<8> w0{"Wire0"};
+    Wire<8> w1{"Wire1"};
+    Wire<8> w2{"Wire2"};
+    Wire<8> w3{"Wire3"};
+    Wire<8> w4{"Wire4"};
+    Wire<1> w5{"Wire5"};
+    Wire<1> w6{"Wire6"};
+    Wire<8> w7{"Wire7"};
+    Wire<8> w8{"Wire8"};
+    Wire<8> w9{"Wire9"};
+    Wire<8> w10{"Wire10"};
+    Wire<8> w11{"Wire11"};
+    Wire<8> w12{"Wire12"};
+    Wire<8> w13{"Wire13"};
 
     // Pipeline stage 1: Clockables
-    Register<8> r0{25, &w0};
-    Register<8> r1{25, &w2};
+    Register<8> r0{25, &w0, "Register0"};
+    Register<8> r1{25, &w2, "Register1"};
     Constant<8> c0{1, &w1};
     Constant<8> c1{1, &w4};
     Constant<1> c2{0, &w5};
     Constant<1> c3{1, &w6};
 
     // Pipeline stage 1: Other components
-    Adder<8> a0{&w7};
-    Adder<8> a1{&w8};
-    Inverter<8> i0{&w3};
+    Adder<8> a0{&w7, "Adder0"};
+    Adder<8> a1{&w8, "Adder1"};
+    Inverter<8> i0{&w3, "Inverter0"};
 
     // Pipeline stage 2: Clockables
-    Register<8> r2{&w9};
-    Register<8> r3{&w10};
+    Register<8> r2{&w9, "Register2"};
+    Register<8> r3{&w10, "Register3"};
 
     // Pipeline stage 2: Other components
-    Inverter<8> i1{&w11};
-    ORGate<8> OR{&w12};
-    XORGate<8> XOR{&w13};
-    Sink<8> s0{};
-    Sink<8> s1{};
+    Inverter<8> i1{&w11, "Inverter1"};
+    ORGate<8> OR{&w12, "ORGate"};
+    XORGate<8> XOR{&w13, "XORGate"};
+    Sink<8> s0{"Sink0"};
+    Sink<8> s1{"Sink1"};
 
     // Make the clock
     Clock system_clock{&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3};
@@ -675,6 +675,7 @@ TEST_CASE( "Constallation 2: Owned by Clock") {
     w13.add_targets(&s1.input);
 
     // Tests
+    cout << "\nTest Clock" << endl;
     system_clock.clock();
 
     CHECK( r0.get_value() == 26 );

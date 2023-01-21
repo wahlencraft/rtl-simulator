@@ -3,6 +3,7 @@
 
 #include <string>
 #include <array>
+#include <atomic>
 
 #include "component.h"
 #include "input_port.h"
@@ -20,17 +21,21 @@ public:
     std::array<InputPort<N>, INPUTS> input;
 
     void set() override {
-        if (++set_count > INPUTS) {
+        int set_count_copy = ++set_count;
+        if (set_count_copy > INPUTS) {
             throw std::runtime_error(name + " has already been set " + std::to_string(INPUTS) + " times");
-        } else if (set_count == INPUTS) {
+        } else if (set_count_copy == INPUTS) {
             BitVector<N> value = calculate_outvalue();
             outwire->set(value);
         }
     }
 
     void reset() override {
-        if (set_count) {
-            set_count = 0;
+        // set_count_copy = set_count
+        // set_count = 0
+        int const set_count_copy = set_count.exchange(0);
+
+        if (set_count_copy) {
             outwire->reset();
         }
     }
@@ -40,7 +45,7 @@ protected:
 
 private:
     Wire<N> *outwire;
-    int set_count{0};
+    std::atomic_int set_count{0};
 };
 
 template <int N>
