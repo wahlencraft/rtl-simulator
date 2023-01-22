@@ -25,7 +25,7 @@ public:
     }
 
     void reset() override {
-        std::cout << "Resetting " << name << std::endl;
+        //std::cout << "Resetting " << name << std::endl;
         is_set = false;
         for (auto const& target : target_list) {
             target->reset();
@@ -35,7 +35,7 @@ public:
     int get_width() const { return N; }
 
     void set(BitVector<N> val) {
-        std::cout << "Setting " << name << "=" << val<< std::endl;
+        //std::cout << "Setting " << name << "=" << val<< std::endl;
         if (is_set) {
             throw std::runtime_error(name + " has alredy been set");
         }
@@ -46,7 +46,7 @@ public:
         }
 
         for (auto const &target : target_list) {
-            std::cout << "passing " << value << " to " << target->get_name() << std::endl;
+            //std::cout << "passing " << value << " to " << target->get_name() << std::endl;
             target->set(value);
         }
     }

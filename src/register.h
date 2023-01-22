@@ -25,7 +25,7 @@ public:
     InputPort<N> input{this, name + ".in"};
 
     void start_set_chain() override {
-        std::cout << "Starting setchain from " << name << std::endl;
+        //std::cout << "Starting setchain from " << name << std::endl;
         if (outwire != nullptr) {
             outwire->set(outvalue);
         }
@@ -53,7 +53,7 @@ public:
 
     // Starts the set chain
     void clock() override {
-        std::cout << "clocking " << name << std::endl;
+        //std::cout << "clocking " << name << std::endl;
         outvalue = input.get_value();
     }
 

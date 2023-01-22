@@ -4,6 +4,7 @@
 #include <list>
 
 #include "clockable.h"
+#include "thread_pool.h"
 
 class Clock {
 public:
@@ -17,7 +18,7 @@ public:
 private:
     long long unsigned cycle{0};
     std::list<Clockable*> clockables;
-    unsigned const max_threads = 0;
+    ThreadPool thread_pool;
 
 };
 

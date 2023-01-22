@@ -1,3 +1,5 @@
+#define CATCH_CONFIG_ENABLE_BENCHMARKING
+
 #include "catch.hpp"
 
 #include "wire.h"
@@ -694,5 +696,55 @@ TEST_CASE( "Constallation 2: Owned by Clock") {
         CHECK( s0.get_value() == (26 | ~24) );
         CHECK( s1.get_value() == (26 ^ ~24) );
     }
+    BENCHMARK_ADVANCED("1 Thread, no Clock (manual clocking)")(Catch::Benchmark::Chronometer meter) {
+        meter.measure([&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3] {
+            r0.start_set_chain();
+            r1.start_set_chain();
+            r2.start_set_chain();
+            r3.start_set_chain();
+            c0.start_set_chain();
+            c1.start_set_chain();
+            c2.start_set_chain();
+            c3.start_set_chain();
+
+            r0.start_reset_chain();
+            r1.start_reset_chain();
+            r2.start_reset_chain();
+            r3.start_reset_chain();
+            c0.start_reset_chain();
+            c1.start_reset_chain();
+            c2.start_reset_chain();
+            c3.start_reset_chain();
+
+            r0.clock();
+            r1.clock();
+            r2.clock();
+            r3.clock();
+            c0.clock();
+            c1.clock();
+            c2.clock();
+            c3.clock();
+        });
+    };
+
+    BENCHMARK_ADVANCED("1 Thread")(Catch::Benchmark::Chronometer meter) {
+        Clock system_clock{1, {&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3}};
+        meter.measure([&system_clock] { return system_clock.clock(); });
+    };
+
+    BENCHMARK_ADVANCED("2 Threads")(Catch::Benchmark::Chronometer meter) {
+        Clock system_clock{2, {&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3}};
+        meter.measure([&system_clock] { return system_clock.clock(); });
+    };
+
+    BENCHMARK_ADVANCED("4 Threads")(Catch::Benchmark::Chronometer meter) {
+        Clock system_clock{2, {&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3}};
+        meter.measure([&system_clock] { return system_clock.clock(); });
+    };
+
+    BENCHMARK_ADVANCED("Max Threads")(Catch::Benchmark::Chronometer meter) {
+        Clock system_clock{0, {&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3}};
+        meter.measure([&system_clock] { return system_clock.clock(); });
+    };
 }
 

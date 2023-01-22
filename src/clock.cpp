@@ -1,15 +1,14 @@
 #include <iostream>
 
 #include "clock.h"
-#include "thread_pool.h"
 
 using namespace std;
 
-Clock::Clock(unsigned max_threads): clockables{}, max_threads{max_threads} {}
+Clock::Clock(unsigned max_threads): clockables{}, thread_pool{max_threads} {}
 Clock::Clock(std::initializer_list<Clockable*> clockables):
-    clockables{clockables}, max_threads{0} {}
+    clockables{clockables}, thread_pool{0} {}
 Clock::Clock(unsigned max_threads, std::initializer_list<Clockable*> clockables):
-    clockables{clockables}, max_threads{max_threads} {}
+    clockables{clockables}, thread_pool{max_threads} {}
 
 void Clock::add_clockable(Clockable *clockable) {
     clockables.push_back(clockable);
@@ -17,20 +16,18 @@ void Clock::add_clockable(Clockable *clockable) {
 
 void Clock::clock() {
 
-    cout << "\nStarting clockcycle " << cycle << endl;
+    //cout << "\nStarting clockcycle " << cycle << endl;
     ++cycle;
-
-    ThreadPool thread_pool{max_threads};
 
     for (Clockable *clockable : clockables) {
         thread_pool.enqueue( [clockable]() { clockable->start_set_chain(); } );
     }
 
-    cout << "\nSet chain started\n" << endl;
+    //cout << "\nSet chain started\n" << endl;
 
     thread_pool.wait_for_jobs_to_finish();
 
-    cout << "\nSet chain done\n" << endl;
+    //cout << "\nSet chain done\n" << endl;
 
     for (Clockable *clockable : clockables) {
         thread_pool.enqueue( [clockable]() { clockable->start_reset_chain(); } );

@@ -1,0 +1,17 @@
+First tests
+1 thread: 5.5 KHz
+2 threads: 3.9 KHz
+4 threads: 3.0 KHz
+20 threads: 1.7 KHz
+
+Only one ThreadPool construction
+1 thread: 5.9 KHz
+2 threads: 4.3 KHz
+4 threads: 3.6 KHz
+20 threads: 3.1 KHz
+
+Remove prints
+1 thread: 185 KHz
+2 threads: 90 KHz
+4 threads: 40 KHz
+20 threads: 9 KHz

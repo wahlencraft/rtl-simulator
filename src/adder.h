@@ -23,7 +23,7 @@ public:
         int const set_count_copy = set_count.exchange(0);
 
         if (set_count_copy) {
-            std::cout << "Reseting " << name << std::endl;
+            //std::cout << "Reseting " << name << std::endl;
             if (Cout != nullptr)
                 Cout->reset();
             outwire->reset();
@@ -33,7 +33,7 @@ public:
     void set() override {
         int const set_count_copy = ++set_count;
         if (set_count_copy == 3) {
-            std::cout << "Setting " << name << std::endl;
+            //std::cout << "Setting " << name << std::endl;
             // Ready to calculate output
 
             if (Cout != nullptr) {

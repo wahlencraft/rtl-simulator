@@ -1,10 +1,13 @@
 # RTL Simulator
 
-The goal of this project is to make a high level Register Transfer Level
+The goal of this project was to make a high level Register Transfer Level
 simulator which can run at a high clock speed.
 
-The simulator will take advantage of the very parallel nature of a RTL design
-and compute multiple simulation paths concurrently.
+To do this I thought it would be usefull to take advantage of the very parallel
+nature of an RTL design and compute multiple simulation paths concurrently.
+
+It turns out that the overhead introduced by handling threads in this case is
+a lot more than the gain from the concurrent calculations.
 
 ## Documentation
 ### BitVector<N>

@@ -28,7 +28,7 @@ public:
     }
 
     void reset() override {
-        std::cout << "Reseting " << name << std::endl;
+        //std::cout << "Reseting " << name << std::endl;
         is_set = false;
         parent->reset();
     }
