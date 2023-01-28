@@ -106,7 +106,7 @@ int main() {
 
     unsigned long iterations = 100000;
 
-    Clock system_clock{4, {&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3}};
+    Clock system_clock{1, {&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3}};
 
     auto start = std::chrono::high_resolution_clock::now();
     for (unsigned long i=0; i<iterations; ++i) {

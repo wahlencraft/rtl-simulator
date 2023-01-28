@@ -675,10 +675,10 @@ TEST_CASE( "Constallation 2: Owned by Clock") {
 
     SECTION("Check output") {
         // Make the clock
-        Clock system_clock{20, {&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3}};
+        cout << "\nTest Clock" << endl;
+        Clock system_clock{8, {&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3}};
 
         // Tests
-        cout << "\nTest Clock" << endl;
         system_clock.clock();
 
         CHECK( r0.get_value() == 26 );
@@ -738,7 +738,12 @@ TEST_CASE( "Constallation 2: Owned by Clock") {
     };
 
     BENCHMARK_ADVANCED("4 Threads")(Catch::Benchmark::Chronometer meter) {
-        Clock system_clock{2, {&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3}};
+        Clock system_clock{4, {&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3}};
+        meter.measure([&system_clock] { return system_clock.clock(); });
+    };
+
+    BENCHMARK_ADVANCED("8 Threads")(Catch::Benchmark::Chronometer meter) {
+        Clock system_clock{8, {&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3}};
         meter.measure([&system_clock] { return system_clock.clock(); });
     };
 

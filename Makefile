@@ -69,14 +69,14 @@ SUBDIR_OBJS = $(wildcard $(foreach d, $(SUBDIRS), $(d)/$(OBJ_DIR)/*.o))
 # Main objetice - created with 'make' or 'make main'.
 main: subdirs base $(OBJ_DIR)/$(MAINOBJ)
 	@ echo Linking main file
-	@ $(CC_CPP) $(CPPFLAGS) -o $(OUTNAME) \
+	@ $(CC_CPP) -pthread $(CPPFLAGS) -o $(OUTNAME) \
 		$(CPP_OBJS) $(C_OBJS) $(OBJ_DIR)/$(MAINOBJ) $(SUBDIR_OBJS) $(LDFLAGS)
 	@ echo ""
 
 # Test objetice
 tests: subdirs base $(TEST_OBJS)
 	@ echo Linking test file
-	@ $(CC_CPP) $(CPPFLAGS) -I$(SRC_DIR) -o $(TEST_OUTNAME) \
+	@ $(CC_CPP) -pthread $(CPPFLAGS) -I$(SRC_DIR) -o $(TEST_OUTNAME) \
 		$(CPP_OBJS) $(C_OBJS) $(TEST_OBJS) $(SUBDIR_OBJS) $(LDFLAGS)
 	@ echo ""
 
