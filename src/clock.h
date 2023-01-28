@@ -5,8 +5,10 @@
 #include <mutex>
 #include <thread>
 #include <condition_variable>
+#include <atomic>
 
 #include "clockable.h"
+#include "barrier.h"
 
 class Clock {
 public:
@@ -23,19 +25,15 @@ private:
 
     long long unsigned cycle{0};
     std::vector<Clockable*> clockables;
-    unsigned thread_count;
-    std::mutex mtx{};
-    std::condition_variable cv{};
+    unsigned const thread_count;
     std::vector<std::thread> threads{};
 
-    // Only modify these when mtx locked
-    bool start = false;
-    bool running = true;
-    unsigned waiting_for_start_count = 0;
-    unsigned set_chain_count = 0;
-    unsigned reset_chain_count = 0;
-    unsigned clock_count = 0;
-    unsigned done_count = 0;
+    std::atomic_bool running = true;
+
+    Barrier start_barrier;
+    Barrier set_chain_barrier;
+    Barrier reset_chain_barrier;
+    Barrier done_barrier;
 
 };
 
