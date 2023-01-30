@@ -59,21 +59,23 @@ void Clock::process(int thread_number) {
     while (true) {
 
         // Wait for next clock cycle
+        //cout << "T" << thread_number << " wait for next clock()" << endl;
         start_barrier.arrive_and_wait();
         if (!running) {
             break;
         }
 
+        //cout << "T" << thread_number << " start set-chains" << endl;
+
         // Set chain
         for (size_t i = 0 + thread_number; i < clockables.size(); i += thread_count) {
-            //cout << "S c[" << i << "]" << endl;
+            //cout << "T" << thread_number << ": clockables[" << i << "]" << endl;
             clockables[i]->start_set_chain();
         }
         set_chain_barrier.arrive_and_wait();
 
         // Rest chain
         for (size_t i = 0 + thread_number; i < clockables.size(); i += thread_count) {
-            //cout << "R c[" << i << "]" << endl;
             clockables[i]->start_reset_chain();
         }
 

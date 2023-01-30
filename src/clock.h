@@ -2,6 +2,7 @@
 #define CLOCK_H_
 
 #include <vector>
+#include <list>
 #include <mutex>
 #include <thread>
 #include <condition_variable>

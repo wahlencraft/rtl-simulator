@@ -696,6 +696,7 @@ TEST_CASE( "Constallation 2: Owned by Clock") {
         CHECK( s0.get_value() == (26 | ~24) );
         CHECK( s1.get_value() == (26 ^ ~24) );
     }
+
     BENCHMARK_ADVANCED("1 Thread, no Clock (manual clocking)")(Catch::Benchmark::Chronometer meter) {
         meter.measure([&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3] {
             r0.start_set_chain();
@@ -753,3 +754,421 @@ TEST_CASE( "Constallation 2: Owned by Clock") {
     };
 }
 
+TEST_CASE( "Constallation 3: Owned by Clock -- Very large circuit") {
+    // To make the large circuit I reuse constallation 2, but make N
+    // instances of it
+
+    unsigned const N = 1000;
+
+    // Make lists to hold the components
+
+    // Declare all wires
+    list<Wire<8>> w0{};
+    list<Wire<8>> w1{};
+    list<Wire<8>> w2{};
+    list<Wire<8>> w3{};
+    list<Wire<8>> w4{};
+    list<Wire<1>> w5{};
+    list<Wire<1>> w6{};
+    list<Wire<8>> w7{};
+    list<Wire<8>> w8{};
+    list<Wire<8>> w9{};
+    list<Wire<8>> w10{};
+    list<Wire<8>> w11{};
+    list<Wire<8>> w12{};
+    list<Wire<8>> w13{};
+
+    // Pipeline stage 1: Clockables
+    list<Register<8>> r0{};
+    list<Register<8>> r1{};
+    list<Constant<8>> c0{};
+    list<Constant<8>> c1{};
+    list<Constant<1>> c2{};
+    list<Constant<1>> c3{};
+
+    // Pipeline stage 1: Other components
+    list<Adder<8>> a0{};
+    list<Adder<8>> a1{};
+    list<Inverter<8>> i0{};
+
+    // Pipeline stage 2: Clockables
+    list<Register<8>> r2{};
+    list<Register<8>> r3{};
+
+    // Pipeline stage 2: Other components
+    list<Inverter<8>> i1{};
+    list<ORGate<8>> OR{};
+    list<XORGate<8>> XOR{};
+    list<Sink<8>> s0{};
+    list<Sink<8>> s1{};
+
+    for (unsigned i=0; i < N; ++i) {
+        // Declare all wires
+        w0.emplace_back("Wire0");
+        w1.emplace_back("Wire1");
+        w2.emplace_back("Wire2");
+        w3.emplace_back("Wire3");
+        w4.emplace_back("Wire4");
+        w5.emplace_back("Wire5");
+        w6.emplace_back("Wire6");
+        w7.emplace_back("Wire7");
+        w8.emplace_back("Wire8");
+        w9.emplace_back("Wire9");
+        w10.emplace_back("Wire10");
+        w11.emplace_back("Wire11");
+        w12.emplace_back("Wire12");
+        w13.emplace_back("Wire13");
+
+        // Pipeline stage 1: Clockables
+        r0.emplace_back(25, &w0.back(), "Register0");
+        r1.emplace_back(25, &w2.back(), "Register1");
+        c0.emplace_back(1, &w1.back());
+        c1.emplace_back(1, &w4.back());
+        c2.emplace_back(0, &w5.back());
+        c3.emplace_back(1, &w6.back());
+
+        // Pipeline stage 1: Other components
+        a0.emplace_back(&w7.back(), "Adder0");
+        a1.emplace_back(&w8.back(), "Adder1");
+        i0.emplace_back(&w3.back(), "Inverter0");
+
+        // Pipeline stage 2: Clockables
+        r2.emplace_back(&w9.back(), "Register2");
+        r3.emplace_back(&w10.back(), "Register3");
+
+        // Pipeline stage 2: Other components
+        i1.emplace_back(&w11.back(), "Inverter1");
+        OR.emplace_back(&w12.back(), "ORGate");
+        XOR.emplace_back(&w13.back(), "XORGate");
+        s0.emplace_back("Sink0");
+        s1.emplace_back("Sink1");
+
+        // Add wire targets
+        w0.back().add_targets(&a0.back().A);
+        w1.back().add_targets(&a0.back().B);
+        w2.back().add_targets(&a1.back().A);
+        w3.back().add_targets(&a1.back().B);
+        w4.back().add_targets(&i0.back().input);
+        w5.back().add_targets(&a0.back().Cin);
+        w6.back().add_targets(&a1.back().Cin);
+        w7.back().add_targets({&r0.back().input, &r2.back().input});
+        w8.back().add_targets({&r1.back().input, &r3.back().input});
+        w9.back().add_targets({&OR.back().input[0], &XOR.back().input[0]});
+        w10.back().add_targets(&i1.back().input);
+        w11.back().add_targets({&OR.back().input[1], &XOR.back().input[1]});
+        w12.back().add_targets(&s0.back().input);
+        w13.back().add_targets(&s1.back().input);
+    }
+
+    SECTION("Check output") {
+        // Make the clock
+        Clock system_clock(8);
+        auto r0_it = r0.begin();
+        auto r1_it = r1.begin();
+        auto r2_it = r2.begin();
+        auto r3_it = r3.begin();
+        auto c0_it = c0.begin();
+        auto c1_it = c1.begin();
+        auto c2_it = c2.begin();
+        auto c3_it = c3.begin();
+        for (unsigned i=0; i<N; ++i) {
+            system_clock.add_clockable(&(*r0_it)); // a pointer to the i:th element in the list r0.
+            system_clock.add_clockable(&(*r1_it));
+            system_clock.add_clockable(&(*r2_it));
+            system_clock.add_clockable(&(*r3_it));
+            system_clock.add_clockable(&(*c0_it));
+            system_clock.add_clockable(&(*c1_it));
+            system_clock.add_clockable(&(*c2_it));
+            system_clock.add_clockable(&(*c3_it));
+
+            ++r0_it;
+            ++r1_it;
+            ++r2_it;
+            ++r3_it;
+            ++c0_it;
+            ++c1_it;
+            ++c2_it;
+            ++c3_it;
+        }
+
+        // Tests
+        system_clock.clock();
+
+        r0_it = r0.begin();
+        r1_it = r1.begin();
+        r2_it = r2.begin();
+        r3_it = r3.begin();
+        auto s0_it = s0.begin();
+        auto s1_it = s1.begin();
+        for (unsigned i=0; i<N; ++i) {
+            auto &r0 = *r0_it;
+            auto &r1 = *r1_it;
+            auto &r2 = *r2_it;
+            auto &r3 = *r3_it;
+            auto &s0 = *s0_it;
+            auto &s1 = *s1_it;
+
+            ++r0_it;
+            ++r1_it;
+            ++r2_it;
+            ++r3_it;
+            ++s0_it;
+            ++s1_it;
+
+            CHECK( r0.get_value() == 26 );
+            CHECK( r1.get_value() == 24 );
+            CHECK( r2.get_value() == 26 );
+            CHECK( r3.get_value() == 24 );
+            CHECK( s0.get_value() == (0 | ~0) );
+            CHECK( s1.get_value() == (0 ^ ~0) );
+        }
+
+        system_clock.clock();
+
+        r0_it = r0.begin();
+        r1_it = r1.begin();
+        r2_it = r2.begin();
+        r3_it = r3.begin();
+        s0_it = s0.begin();
+        s1_it = s1.begin();
+        for (unsigned i=0; i<N; ++i) {
+            auto &r0 = *r0_it;
+            auto &r1 = *r1_it;
+            auto &r2 = *r2_it;
+            auto &r3 = *r3_it;
+            auto &s0 = *s0_it;
+            auto &s1 = *s1_it;
+
+            ++r0_it;
+            ++r1_it;
+            ++r2_it;
+            ++r3_it;
+            ++s0_it;
+            ++s1_it;
+            CHECK( r0.get_value() == 27 );
+            CHECK( r1.get_value() == 23 );
+            CHECK( r2.get_value() == 27 );
+            CHECK( r3.get_value() == 23 );
+            CHECK( s0.get_value() == (26 | ~24) );
+            CHECK( s1.get_value() == (26 ^ ~24) );
+        }
+    }
+
+    BENCHMARK_ADVANCED("1 Thread, no Clock (manual clocking)")(Catch::Benchmark::Chronometer meter) {
+        meter.measure([&r0, &r1, &r2, &r3, &c0, &c1, &c2, &c3] {
+
+            auto r0_it = r0.begin();
+            auto r1_it = r1.begin();
+            auto r2_it = r2.begin();
+            auto r3_it = r3.begin();
+            auto c0_it = c0.begin();
+            auto c1_it = c1.begin();
+            auto c2_it = c2.begin();
+            auto c3_it = c3.begin();
+
+            for (unsigned i=0; i<N; ++i) {
+                (*r0_it).start_set_chain();
+                (*r1_it).start_set_chain();
+                (*r2_it).start_set_chain();
+                (*r3_it).start_set_chain();
+                (*c0_it).start_set_chain();
+                (*c1_it).start_set_chain();
+                (*c2_it).start_set_chain();
+                (*c3_it).start_set_chain();
+
+                (*r0_it).start_reset_chain();
+                (*r1_it).start_reset_chain();
+                (*r2_it).start_reset_chain();
+                (*r3_it).start_reset_chain();
+                (*c0_it).start_reset_chain();
+                (*c1_it).start_reset_chain();
+                (*c2_it).start_reset_chain();
+                (*c3_it).start_reset_chain();
+
+                (*r0_it).clock();
+                (*r1_it).clock();
+                (*r2_it).clock();
+                (*r3_it).clock();
+                (*c0_it).clock();
+                (*c1_it).clock();
+                (*c2_it).clock();
+                (*c3_it).clock();
+
+                ++r0_it;
+                ++r1_it;
+                ++r2_it;
+                ++r3_it;
+                ++c0_it;
+                ++c1_it;
+                ++c2_it;
+                ++c3_it;
+            }
+        });
+    };
+
+    BENCHMARK_ADVANCED("1 Thread")(Catch::Benchmark::Chronometer meter) {
+        // Make the clock
+        Clock system_clock(1);
+        auto r0_it = r0.begin();
+        auto r1_it = r1.begin();
+        auto r2_it = r2.begin();
+        auto r3_it = r3.begin();
+        auto c0_it = c0.begin();
+        auto c1_it = c1.begin();
+        auto c2_it = c2.begin();
+        auto c3_it = c3.begin();
+        for (unsigned i=0; i<N; ++i) {
+            system_clock.add_clockable(&(*r0_it)); // a pointer to the i:th element in the list r0.
+            system_clock.add_clockable(&(*r1_it));
+            system_clock.add_clockable(&(*r2_it));
+            system_clock.add_clockable(&(*r3_it));
+            system_clock.add_clockable(&(*c0_it));
+            system_clock.add_clockable(&(*c1_it));
+            system_clock.add_clockable(&(*c2_it));
+            system_clock.add_clockable(&(*c3_it));
+
+            ++r0_it;
+            ++r1_it;
+            ++r2_it;
+            ++r3_it;
+            ++c0_it;
+            ++c1_it;
+            ++c2_it;
+            ++c3_it;
+        }
+        meter.measure([&system_clock] { return system_clock.clock(); });
+    };
+
+    BENCHMARK_ADVANCED("2 Threads")(Catch::Benchmark::Chronometer meter) {
+        // Make the clock
+        Clock system_clock(2);
+        auto r0_it = r0.begin();
+        auto r1_it = r1.begin();
+        auto r2_it = r2.begin();
+        auto r3_it = r3.begin();
+        auto c0_it = c0.begin();
+        auto c1_it = c1.begin();
+        auto c2_it = c2.begin();
+        auto c3_it = c3.begin();
+        for (unsigned i=0; i<N; ++i) {
+            system_clock.add_clockable(&(*r0_it)); // a pointer to the i:th element in the list r0.
+            system_clock.add_clockable(&(*r1_it));
+            system_clock.add_clockable(&(*r2_it));
+            system_clock.add_clockable(&(*r3_it));
+            system_clock.add_clockable(&(*c0_it));
+            system_clock.add_clockable(&(*c1_it));
+            system_clock.add_clockable(&(*c2_it));
+            system_clock.add_clockable(&(*c3_it));
+
+            ++r0_it;
+            ++r1_it;
+            ++r2_it;
+            ++r3_it;
+            ++c0_it;
+            ++c1_it;
+            ++c2_it;
+            ++c3_it;
+        }
+        meter.measure([&system_clock] { return system_clock.clock(); });
+    };
+
+    BENCHMARK_ADVANCED("4 Threads")(Catch::Benchmark::Chronometer meter) {
+        // Make the clock
+        Clock system_clock(4);
+        auto r0_it = r0.begin();
+        auto r1_it = r1.begin();
+        auto r2_it = r2.begin();
+        auto r3_it = r3.begin();
+        auto c0_it = c0.begin();
+        auto c1_it = c1.begin();
+        auto c2_it = c2.begin();
+        auto c3_it = c3.begin();
+        for (unsigned i=0; i<N; ++i) {
+            system_clock.add_clockable(&(*r0_it)); // a pointer to the i:th element in the list r0.
+            system_clock.add_clockable(&(*r1_it));
+            system_clock.add_clockable(&(*r2_it));
+            system_clock.add_clockable(&(*r3_it));
+            system_clock.add_clockable(&(*c0_it));
+            system_clock.add_clockable(&(*c1_it));
+            system_clock.add_clockable(&(*c2_it));
+            system_clock.add_clockable(&(*c3_it));
+
+            ++r0_it;
+            ++r1_it;
+            ++r2_it;
+            ++r3_it;
+            ++c0_it;
+            ++c1_it;
+            ++c2_it;
+            ++c3_it;
+        }
+        meter.measure([&system_clock] { return system_clock.clock(); });
+    };
+
+    BENCHMARK_ADVANCED("8 Threads")(Catch::Benchmark::Chronometer meter) {
+        // Make the clock
+        Clock system_clock(8);
+        auto r0_it = r0.begin();
+        auto r1_it = r1.begin();
+        auto r2_it = r2.begin();
+        auto r3_it = r3.begin();
+        auto c0_it = c0.begin();
+        auto c1_it = c1.begin();
+        auto c2_it = c2.begin();
+        auto c3_it = c3.begin();
+        for (unsigned i=0; i<N; ++i) {
+            system_clock.add_clockable(&(*r0_it)); // a pointer to the i:th element in the list r0.
+            system_clock.add_clockable(&(*r1_it));
+            system_clock.add_clockable(&(*r2_it));
+            system_clock.add_clockable(&(*r3_it));
+            system_clock.add_clockable(&(*c0_it));
+            system_clock.add_clockable(&(*c1_it));
+            system_clock.add_clockable(&(*c2_it));
+            system_clock.add_clockable(&(*c3_it));
+
+            ++r0_it;
+            ++r1_it;
+            ++r2_it;
+            ++r3_it;
+            ++c0_it;
+            ++c1_it;
+            ++c2_it;
+            ++c3_it;
+        }
+        meter.measure([&system_clock] { return system_clock.clock(); });
+    };
+
+    BENCHMARK_ADVANCED("Max Threads")(Catch::Benchmark::Chronometer meter) {
+        // Make the clock
+        Clock system_clock(0);
+        auto r0_it = r0.begin();
+        auto r1_it = r1.begin();
+        auto r2_it = r2.begin();
+        auto r3_it = r3.begin();
+        auto c0_it = c0.begin();
+        auto c1_it = c1.begin();
+        auto c2_it = c2.begin();
+        auto c3_it = c3.begin();
+        for (unsigned i=0; i<N; ++i) {
+            system_clock.add_clockable(&(*r0_it)); // a pointer to the i:th element in the list r0.
+            system_clock.add_clockable(&(*r1_it));
+            system_clock.add_clockable(&(*r2_it));
+            system_clock.add_clockable(&(*r3_it));
+            system_clock.add_clockable(&(*c0_it));
+            system_clock.add_clockable(&(*c1_it));
+            system_clock.add_clockable(&(*c2_it));
+            system_clock.add_clockable(&(*c3_it));
+
+            ++r0_it;
+            ++r1_it;
+            ++r2_it;
+            ++r3_it;
+            ++c0_it;
+            ++c1_it;
+            ++c2_it;
+            ++c3_it;
+        }
+        meter.measure([&system_clock] { return system_clock.clock(); });
+    };
+
+}
